@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-win10", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "simple", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:00:48.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 10 Home", "version": "10.0.19045", "buildNumber": "19045",
+      "displayVersion": "22H2", "ubr": 5011, "architecture": "64-bit",
+      "lastBootAt": "2026-11-12T08:00:00.000Z", "uptimeHours": 172.0
+    },
+    "cpu": { "name": "Example Laptop CPU", "cores": 4, "logicalProcessors": 8, "maxClockMhz": 2600 },
+    "memory": { "totalBytes": 8589934592, "freeBytes": 3435973837, "availablePct": 40.0 },
+    "gpu": [ { "name": "Example Integrated Graphics", "driverVersion": "27.20.100.9664", "status": "OK" } ],
+    "disks": [ { "index": 1, "model": "Example HDD 500GB", "sizeBytes": 500107862016, "status": "OK", "interfaceType": "SATA" } ],
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 118802342912, "freePct": 24.9, "isSystem": true } ]
+  },
+  "performance": {
+    "memory": { "totalBytes": 8589934592, "freeBytes": 3435973837, "availablePct": 40.0, "committedBytes": 4294967296, "commitLimitBytes": 10737418240, "commitPct": 40.0, "availableMB": 3276 },
+    "cpu": {
+      "sampleCount": 3, "requestedSamples": 3, "intervalSec": 2, "avgPercent": 22.0, "maxPercent": 31.0, "minPercent": 14.0,
+      "samples": [ { "at": "2026-11-19T12:00:30.000Z", "percent": 14.0 }, { "at": "2026-11-19T12:00:32.000Z", "percent": 21.0 }, { "at": "2026-11-19T12:00:34.000Z", "percent": 31.0 } ]
+    },
+    "topProcessesByMemory": [], "topProcessesByCpu": []
+  },
+  "storage": {
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 118802342912, "freePct": 24.9, "isSystem": true, "healthStatus": "Healthy", "operationalStatus": "Online" } ],
+    "physicalDisks": [ { "index": 1, "friendlyName": "Example HDD 500GB", "mediaType": "HDD", "busType": "SATA", "healthStatus": "Healthy", "operationalStatus": "Online", "sizeBytes": 500107862016 } ],
+    "smart": { "status": "ok", "checked": 1, "items": [ { "index": 1, "predictFailure": false, "reason": 0, "active": true } ] }
+  },
+  "modules": [
+    { "id": "system", "status": "ok", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 1610, "commands": ["Get-CimInstance", "Get-ItemProperty"], "errors": [], "limits": [] },
+    { "id": "performance", "status": "ok", "startedAt": "2026-11-19T12:00:05.000Z", "durationMs": 8100, "commands": ["Get-CimInstance", "Get-Process", "Start-Sleep"], "errors": [], "limits": [] },
+    { "id": "storage", "status": "ok", "startedAt": "2026-11-19T12:00:20.000Z", "durationMs": 2340, "commands": ["Get-CimInstance", "Get-PhysicalDisk", "Get-Volume"], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}

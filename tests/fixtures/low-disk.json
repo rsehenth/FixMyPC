@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-lowdisk", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "simple", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:00:55.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 11 Pro", "version": "10.0.26200", "buildNumber": "26200",
+      "displayVersion": "25H2", "ubr": 6584, "architecture": "64-bit",
+      "lastBootAt": "2026-11-18T09:00:00.000Z", "uptimeHours": 27.0
+    },
+    "cpu": { "name": "Example Desktop CPU", "cores": 6, "logicalProcessors": 12, "maxClockMhz": 3600 },
+    "memory": { "totalBytes": 17179869184, "freeBytes": 8589934592, "availablePct": 50.0 },
+    "gpu": [], "disks": [ { "index": 1, "model": "Example SSD 256GB", "sizeBytes": 256052966400, "status": "OK", "interfaceType": "NVMe" } ],
+    "volumes": [ { "driveLetter": "C:", "label": "System", "sizeBytes": 254663548928, "freeBytes": 8149233664, "freePct": 3.2, "isSystem": true } ]
+  },
+  "events": {
+    "windowDays": 7,
+    "logs": {
+      "System": { "status": "ok", "totalEvents": 8, "groups": [
+        {
+          "provider": "disk", "eventId": 7, "count": 6,
+          "firstSeen": "2026-11-16T21:14:00.000Z", "lastSeen": "2026-11-19T08:44:00.000Z", "maxLevel": 2,
+          "sample": "The device, \\Device\\Harddisk0\\DR0, has a bad block.", "msgMissing": false
+        },
+        {
+          "provider": "Ntfs", "eventId": 55, "count": 2,
+          "firstSeen": "2026-11-18T10:02:00.000Z", "lastSeen": "2026-11-19T09:01:00.000Z", "maxLevel": 2,
+          "sample": "A corruption was discovered in the file system structure on volume C:.", "msgMissing": false
+        }
+      ] },
+      "Application": { "status": "ok", "totalEvents": 0, "groups": [] }
+    }
+  },
+  "performance": {
+    "memory": { "totalBytes": 17179869184, "freeBytes": 8589934592, "availablePct": 50.0, "committedBytes": 6442450944, "commitLimitBytes": 21474836480, "commitPct": 30.0, "availableMB": 8192 },
+    "cpu": {
+      "sampleCount": 3, "requestedSamples": 3, "intervalSec": 2, "avgPercent": 18.0, "maxPercent": 24.0, "minPercent": 12.0,
+      "samples": [ { "at": "2026-11-19T12:00:30.000Z", "percent": 12.0 }, { "at": "2026-11-19T12:00:32.000Z", "percent": 18.0 }, { "at": "2026-11-19T12:00:34.000Z", "percent": 24.0 } ]
+    },
+    "topProcessesByMemory": [], "topProcessesByCpu": []
+  },
+  "storage": {
+    "volumes": [ { "driveLetter": "C:", "label": "System", "sizeBytes": 254663548928, "freeBytes": 8149233664, "freePct": 3.2, "isSystem": true, "healthStatus": "Healthy", "operationalStatus": "Online" } ],
+    "physicalDisks": [ { "index": 1, "friendlyName": "Example SSD 256GB", "mediaType": "SSD", "busType": "NVMe", "healthStatus": "Healthy", "operationalStatus": "Online", "sizeBytes": 256052966400 } ],
+    "smart": { "status": "ok", "checked": 1, "items": [ { "index": 1, "predictFailure": true, "reason": 5, "active": true } ] }
+  },
+  "modules": [
+    { "id": "system", "status": "ok", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 1500, "commands": ["Get-CimInstance", "Get-ItemProperty"], "errors": [], "limits": [] },
+    { "id": "events", "status": "ok", "startedAt": "2026-11-19T12:00:02.000Z", "durationMs": 20100, "commands": ["Get-WinEvent"], "errors": [], "limits": [] },
+    { "id": "startup", "status": "ok", "startedAt": "2026-11-19T12:00:22.000Z", "durationMs": 2900, "commands": ["Get-CimInstance", "Get-ItemProperty"], "errors": [], "limits": [] },
+    { "id": "performance", "status": "ok", "startedAt": "2026-11-19T12:00:25.000Z", "durationMs": 8200, "commands": ["Get-CimInstance", "Get-Process", "Start-Sleep"], "errors": [], "limits": [] },
+    { "id": "storage", "status": "ok", "startedAt": "2026-11-19T12:00:33.000Z", "durationMs": 2200, "commands": ["Get-CimInstance", "Get-PhysicalDisk", "Get-Volume"], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}

@@ -1,0 +1,36 @@
+# Inert fixture content used ONLY as scan input for the read-only policy
+# tests. Kept as .ps1.txt so the project scanner never treats it as code.
+# Each snippet is split on the marker below and scanned separately.
+# --- snippet ---
+Set-ItemProperty -Path 'HKLM:\SOFTWARE\Example' -Name 'Flag' -Value 1
+# --- snippet ---
+Stop-Service -Name 'wuauserv'
+Start-Service -Name 'Spooler'
+# --- snippet ---
+Invoke-Expression 'Get-Date'
+Invoke-RestMethod -Uri 'http://example.invalid'
+# --- snippet ---
+Get-CimInstance -ClassName Win32_Product
+# --- snippet ---
+reg add HKLM\SOFTWARE\Example /v Flag /t REG_DWORD /d 1 /f
+net stop spooler
+# --- snippet ---
+Start-Process -FilePath 'cmd.exe' -ArgumentList '/c chkdsk C: /f'
+# --- snippet ---
+Set-ExecutionPolicy -Scope LocalMachine Bypass
+# --- snippet ---
+$key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SOFTWARE')
+$key.CreateSubKey('Evil')
+# --- snippet ---
+$notepad = Get-Process -Name 'notepad'
+$notepad.Kill()
+# --- snippet ---
+$unknownCommand = 'Get-Date'
+& $unknownCommand
+# --- snippet ---
+Remove-Computer -Credential (Get-Credential)
+# --- snippet ---
+powercfg /energy
+# --- snippet ---
+$client = New-Object System.Net.WebClient
+$null = $client.DownloadString('http://example.invalid')

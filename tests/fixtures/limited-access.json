@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-noadmin", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "full", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:00:58.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 11 Pro", "version": "10.0.26200", "buildNumber": "26200",
+      "displayVersion": "25H2", "ubr": 6584, "architecture": "64-bit",
+      "lastBootAt": "2026-11-19T05:00:00.000Z", "uptimeHours": 7.0
+    },
+    "cpu": { "name": "Example CPU", "cores": 6, "logicalProcessors": 12, "maxClockMhz": 3200 },
+    "memory": { "totalBytes": 17179869184, "freeBytes": 9437184000, "availablePct": 54.9 },
+    "gpu": [], "disks": [],
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 285664717209, "freePct": 60.0, "isSystem": true } ]
+  },
+  "events": {
+    "windowDays": 7,
+    "logs": {
+      "System": { "status": "ok", "totalEvents": 0, "groups": [] },
+      "Application": { "status": "ok", "totalEvents": 0, "groups": [] },
+      "Security": { "status": "access_denied", "totalEvents": null, "groups": [] }
+    },
+    "security": { "status": "access_denied", "logonFailures": null, "firstSeen": null, "lastSeen": null }
+  },
+  "startup": { "items": [], "logonTasks": [], "autoServices": [] },
+  "performance": {
+    "memory": { "totalBytes": 17179869184, "freeBytes": 9437184000, "availablePct": 54.9, "committedBytes": 4294967296, "commitLimitBytes": 20401094656, "commitPct": 21.1, "availableMB": 9000 },
+    "cpu": {
+      "sampleCount": 3, "requestedSamples": 3, "intervalSec": 2, "avgPercent": 12.0, "maxPercent": 15.0, "minPercent": 9.0,
+      "samples": [ { "at": "2026-11-19T12:00:30.000Z", "percent": 9.0 }, { "at": "2026-11-19T12:00:32.000Z", "percent": 12.0 }, { "at": "2026-11-19T12:00:34.000Z", "percent": 15.0 } ]
+    },
+    "topProcessesByMemory": [], "topProcessesByCpu": []
+  },
+  "storage": {
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 285664717209, "freePct": 60.0, "isSystem": true, "healthStatus": null, "operationalStatus": null } ],
+    "physicalDisks": [],
+    "smart": { "status": "access_denied", "checked": 0, "items": [], "note": "SMART status unavailable; disk health cannot be confirmed from this data." }
+  },
+  "advanced": {
+    "problemDevices": { "status": "ok", "count": 0, "items": [] },
+    "defender": { "status": "unsupported", "data": null },
+    "thirdPartyAv": { "status": "unsupported", "count": 0, "items": [] },
+    "pendingReboot": { "status": "ok", "pendingWuReboot": false, "pendingCbs": false, "pendingFileRename": false, "any": false },
+    "updates": { "status": "not_collected", "justification": "not passive" },
+    "hotfixes": { "status": "unknown", "latest": null, "items": [] },
+    "installedApps": { "status": "error", "totalCount": 0, "truncated": false, "items": [] },
+    "signatures": { "status": "ok", "checked": 0, "truncated": false, "items": [] }
+  },
+  "modules": [
+    { "id": "system", "status": "ok", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 1550, "commands": ["Get-CimInstance"], "errors": [], "limits": [ { "key": "no_32bit_view", "detail": "WOW6432Node not present." } ] },
+    { "id": "events", "status": "partial", "startedAt": "2026-11-19T12:00:02.000Z", "durationMs": 19200, "commands": ["Get-WinEvent"], "errors": [ { "where": "events.Security", "message": "Access denied" } ], "limits": [ { "key": "security_log_needs_admin", "detail": "Security log requires admin" } ] },
+    { "id": "startup", "status": "ok", "startedAt": "2026-11-19T12:00:21.000Z", "durationMs": 2610, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "performance", "status": "ok", "startedAt": "2026-11-19T12:00:24.000Z", "durationMs": 8050, "commands": ["Get-CimInstance", "Get-Process", "Start-Sleep"], "errors": [], "limits": [] },
+    { "id": "storage", "status": "partial", "startedAt": "2026-11-19T12:00:32.000Z", "durationMs": 2280, "commands": ["Get-CimInstance"], "errors": [ { "where": "storage.smart", "message": "Access denied" } ], "limits": [ { "key": "smart_unavailable", "detail": "Access denied" } ] },
+    { "id": "advanced", "status": "partial", "startedAt": "2026-11-19T12:00:34.000Z", "durationMs": 22800, "commands": ["Get-CimInstance", "Test-Path"], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}

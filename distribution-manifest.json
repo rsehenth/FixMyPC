@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "product": "FIX MY PC: Windows Diagnostic & Audit Skill",
+  "version": "0.1.0",
+  "status": "NOT RELEASED - preparation only. This manifest authorizes no publication and no real audit.",
+  "note": "Every file in the repository must match exactly one group below. tools/Test-DistributionManifest.ps1 fails on unclassified files, on patterns that match nothing, and on forbidden names inside the runtime package. Patterns are relative, use '/' and '*' (which also crosses folders).",
+  "runtime": [
+    "fixmypc.ps1",
+    "SKILL.md",
+    "README.md",
+    "README.pt-BR.md",
+    "NOTICE.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "src/*",
+    "rules/rules.json",
+    "locales/*.json",
+    "templates/style.css",
+    "schemas/diagnostic.schema.json",
+    "assets/optimized/manifest.json",
+    "assets/optimized/embed/*.b64",
+    "adapters/*",
+    "docs/readonly-policy.md",
+    "docs/methodology.md",
+    "docs/visual-integration.md"
+  ],
+  "development": [
+    "distribution-manifest.json",
+    ".gitignore",
+    "tests/*",
+    "tools/*",
+    "docs/homologation-plan.md",
+    "docs/reviews/*",
+    "docs/screenshots/*",
+    "IMPLEMENTATION-REPORT.md",
+    "samples/*",
+    "assets/brand-review.json",
+    "assets/branding/*",
+    "assets/report/*",
+    "assets/optimized/branding/*",
+    "assets/optimized/report/*"
+  ],
+  "neverShip": [
+    ".playwright-mcp/*",
+    ".impeccable/*",
+    ".commandcode/*",
+    "graphify-out/*",
+    "out/*"
+  ],
+  "forbiddenInRuntime": [
+    "*/report.html",
+    "*diagnostic-internal.json",
+    "*diagnostic-sanitized.json",
+    "*.log",
+    "out/*",
+    "*.env",
+    "*.pem",
+    "*.pfx",
+    "*.key"
+  ],
+  "resolved": [
+    {
+      "id": "LICENSE-CHOICE",
+      "summary": "Owner selected PolyForm Noncommercial License 1.0.0 (source-available, not OSI open source). LICENSE holds the unmodified official text; SKILL.md (SPDX PolyForm-Noncommercial-1.0.0), README.md, README.pt-BR.md and NOTICE.md cite the same license. Legal review of the text, copyright holder and artwork ownership remain under LEGAL-REVIEW."
+    },
+    {
+      "id": "FMP-10",
+      "summary": "Windows logo and approval-style art replaced by the v2 identity (stage 7.1). Gate: assets/brand-review.json is bound to each source hash and checked by tests/Visual.Tests.ps1 (V12). Visual review only; not a legal review."
+    }
+  ],
+  "releaseBlockers": [
+    {
+      "id": "LEGAL-REVIEW",
+      "summary": "Product name and tagline contain 'Windows'; non-affiliation wording needs legal review before public distribution. Ownership, authorship and terms of the name, logo and v2 artwork are not recorded, and the copyright holder / Required Notice line for PolyForm Noncommercial 1.0.0 is not defined. See NOTICE.md.",
+      "affectedRuntimeFiles": "README.md, README.pt-BR.md, NOTICE.md, LICENSE, locales/*.json, assets/optimized/embed/*.b64"
+    }
+  ]
+}

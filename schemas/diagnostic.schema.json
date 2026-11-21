@@ -1,0 +1,343 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fixmypc.local/schemas/diagnostic.schema.json",
+  "title": "FIX MY PC diagnostic document (sanitized and internal share this shape)",
+  "description": "Versioned diagnostic document produced by fixmypc.ps1. The sanitized variant masks event messages, command lines, account identifiers and paths. Some inventory names remain for diagnosis.",
+  "type": "object",
+  "required": ["schemaVersion", "run"],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0.0" },
+    "run": {
+      "type": "object",
+      "required": ["id", "toolVersion", "mode", "language", "synthetic", "startedAt", "finishedAt"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "tool": { "type": "string" },
+        "toolVersion": { "type": "string" },
+        "mode": { "enum": ["simple", "full"] },
+        "language": { "enum": ["pt-BR", "en"] },
+        "synthetic": { "type": "boolean" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "finishedAt": { "type": "string", "format": "date-time" },
+        "readOnlyPolicy": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "readOnly": { "type": "boolean" },
+            "collectionWrites": { "type": "boolean" },
+            "networkAccess": { "type": "boolean" },
+            "elevation": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "system": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "OS, build, CPU, memory, GPU, disks, volumes, uptime. Never contains serials, product keys or machine GUIDs.",
+      "properties": {
+        "os": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "caption": { "type": ["string", "null"] },
+            "version": { "type": ["string", "null"] },
+            "buildNumber": { "type": ["string", "null"] },
+            "displayVersion": { "type": ["string", "null"] },
+            "ubr": { "type": ["integer", "null"] },
+            "architecture": { "type": ["string", "null"] },
+            "uptimeHours": { "type": ["number", "null"] }
+          }
+        },
+        "cpu": { "type": ["object", "null"], "additionalProperties": true },
+        "memory": { "type": ["object", "null"], "additionalProperties": true },
+        "gpu": { "type": "array", "items": { "type": "object" } },
+        "disks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Model, size, status, interface. No serialNumber field by policy."
+          }
+        },
+        "volumes": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      }
+    },
+    "events": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "windowDays": { "type": "integer" },
+        "logs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "status": { "enum": ["ok", "empty", "access_denied", "error", "unsupported"] },
+              "totalEvents": { "type": ["integer", "null"] },
+              "truncated": { "type": "boolean" },
+              "collectionTruncated": { "type": ["boolean", "null"] },
+              "sanitizedTruncated": { "type": ["boolean", "null"] },
+              "presentedCount": { "type": ["integer", "null"] },
+              "groups": {
+                "type": ["array", "null"],
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "provider": { "type": ["string", "null"] },
+                    "eventId": { "type": ["integer", "null"] },
+                    "count": { "type": ["integer", "null"] },
+                    "firstSeen": { "type": ["string", "null"], "format": "date-time" },
+                    "lastSeen": { "type": ["string", "null"], "format": "date-time" },
+                    "sample": { "type": ["string", "null"], "description": "Legacy fixture field. Live event messages are omitted." },
+                    "msgMissing": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "startup": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "kind": { "enum": ["run", "runOnce", "folder"] },
+              "name": { "type": ["string", "null"] },
+              "command": { "type": ["string", "null"], "description": "Metadata only; never executed." },
+              "source": { "type": ["string", "null"] },
+              "view": { "type": ["string", "null"] },
+              "origin": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "logonTasks": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "autoServices": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "memory": { "type": ["object", "null"], "additionalProperties": true },
+        "cpu": {
+          "type": ["object", "null"],
+          "additionalProperties": true,
+          "properties": {
+            "sampleCount": { "type": ["integer", "null"] },
+            "avgPercent": { "type": ["number", "null"] },
+            "samples": { "type": "array", "items": { "type": "object" } }
+          }
+        },
+        "topProcessesByMemory": { "type": ["array", "null"], "items": { "type": "object" } },
+        "topProcessesByCpu": { "type": ["array", "null"], "items": { "type": "object" } },
+        "pagefile": { "type": ["object", "null"], "additionalProperties": true }
+      }
+    },
+    "storage": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "properties": {
+        "volumes": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "physicalDisks": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "smart": {
+          "type": ["object", "null"],
+          "additionalProperties": true,
+          "properties": {
+            "status": { "enum": ["ok", "empty", "access_denied", "unsupported", "error"] },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "predictFailure": { "type": ["boolean", "null"] },
+                  "reason": { "type": ["integer", "null"] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "advanced": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "description": "Full-mode device, Defender, AV and update metadata plus passive registry inventory. Live Authenticode and Windows Update searches are not collected.",
+      "properties": {
+        "updates": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "status": { "const": "not_collected" },
+            "justification": { "type": "string" }
+          }
+        },
+        "installedApps": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "status": { "type": "string" },
+            "totalCount": { "type": ["integer", "null"] },
+            "presentedCount": { "type": ["integer", "null"] },
+            "truncated": { "type": ["boolean", "null"] },
+            "collectionTruncated": { "type": ["boolean", "null"] },
+            "sanitizedTruncated": { "type": ["boolean", "null"] },
+            "items": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+          }
+        },
+        "signatures": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "status": { "type": "string" },
+            "checked": { "type": ["integer", "null"] },
+            "presentedCount": { "type": ["integer", "null"] },
+            "truncated": { "type": ["boolean", "null"] },
+            "collectionTruncated": { "type": ["boolean", "null"] },
+            "sanitizedTruncated": { "type": ["boolean", "null"] },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "file": { "type": ["string", "null"], "description": "Basename only in the sanitized view." },
+                  "status": { "type": ["string", "null"], "description": "Authenticode status; NotSigned is NOT evidence of malware." }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "enum": ["ok", "partial", "failed"] },
+          "durationMs": { "type": ["integer", "null"] },
+          "commands": { "type": "array", "items": { "type": "string" }, "description": "Static inventory of read-only commands used by the module." },
+          "errors": { "type": "array", "items": { "type": "object" } },
+          "limits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["key"],
+              "properties": {
+                "key": { "type": "string", "description": "Canonical limitation id (may carry a dynamic suffix)." },
+                "detail": { "type": "string", "description": "Canonical English detail, kept unchanged." },
+                "localeKey": { "type": "string", "description": "Report text key (limit.<localeKey>) when key has a dynamic suffix." },
+                "values": { "type": "array", "description": "Values for the {0}.. placeholders of the localized text." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "evidence": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "subChecks": { "type": "array", "items": {} },
+    "analysis": {
+      "type": "object",
+      "required": ["checks", "findings"],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "state"],
+            "properties": {
+              "id": { "type": "string" },
+              "state": { "enum": ["pass", "finding", "unknown", "unsupported", "access_denied", "not_collected", "error"] },
+              "limitations": { "type": "array", "items": { "type": "string" }, "description": "Canonical English text." },
+              "limitationKeys": { "type": "array", "items": { "type": "string" }, "description": "Stable locale keys, parallel to limitations ('' when unregistered)." }
+            }
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "severity", "category", "confidence"],
+            "properties": {
+              "limitations": { "type": "array", "items": { "type": "string" } },
+              "limitationKeys": { "type": "array", "items": { "type": "string" } },
+              "riskGate": { "enum": ["critical"], "description": "Set only by base rules with a proven critical storage failure." }
+            }
+          }
+        }
+      }
+    },
+    "healthScore": {
+      "type": "object",
+      "required": ["score", "status", "confidence", "riskLevel", "coveragePct", "coveredChecks", "applicableChecks", "categories"],
+      "properties": {
+        "scoreAlgorithmVersion": { "type": "string", "description": "Version of the scoring formula (2.0 = eligibility + renormalization + risk gate, FMP-01). Optional so documents from earlier runs stay valid." },
+        "score": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "uncappedScore": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "description": "Score before the critical-risk cap." },
+        "scoreCap": { "type": ["number", "null"], "description": "Cap in force for this riskLevel (riskGates in rules.json), else null." },
+        "capped": { "type": "boolean" },
+        "status": { "enum": ["ok", "provisional", "unavailable"], "description": "Availability of the score (coverage), not health." },
+        "confidence": { "enum": ["low", "medium", "high"], "description": "Confidence in the collected data, not in the computer's health." },
+        "riskLevel": { "enum": ["critical", "elevated", "none_detected", "undetermined"], "description": "Diagnostic risk from base findings, independent of status and confidence." },
+        "riskReasons": { "type": "array", "items": { "type": "string" }, "description": "Rule ids behind riskLevel." },
+        "coveragePct": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "coveredChecks": { "type": "integer", "minimum": 0 },
+        "applicableChecks": { "type": "integer", "minimum": 0 },
+        "eligibleWeight": { "type": "number", "minimum": 0, "maximum": 100, "description": "Sum of the weights of the categories that entered the score." },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "eligible": { "type": "boolean" },
+              "excludedReason": { "enum": ["no_base_rules", "no_evidence", "zero_weight", null] }
+            }
+          }
+        },
+        "limitations": { "type": "array", "items": { "type": "string" } },
+        "limitationKeys": { "type": "array", "items": { "type": "string" } }
+      },
+      "if": { "properties": { "status": { "const": "unavailable" } } },
+      "then": { "properties": { "score": { "type": "null" } } },
+      "else": { "properties": { "score": { "type": "integer" } } }
+    },
+    "privacy": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "properties": {
+        "sanitized": { "type": "boolean" },
+        "redactionCount": { "type": "integer" },
+        "truncated": { "type": "boolean" },
+        "truncatedCollections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "originalCount", "retainedCount"],
+            "properties": {
+              "path": { "type": "string" },
+              "originalCount": { "type": "integer", "minimum": 0 },
+              "retainedCount": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

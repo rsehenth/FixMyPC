@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-degenerate", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "simple", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:00:10.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 11 Home",
+      "version": null,
+      "buildNumber": null,
+      "displayVersion": null,
+      "architecture": null,
+      "lastBootAt": null,
+      "uptimeHours": null
+    },
+    "cpu": null,
+    "memory": null,
+    "gpu": [],
+    "disks": [],
+    "volumes": []
+  },
+  "events": {
+    "windowDays": 7,
+    "logs": {
+      "System": { "status": "error", "totalEvents": null, "groups": null },
+      "Application": { "status": "access_denied", "totalEvents": null, "groups": [] }
+    }
+  },
+  "startup": {
+    "items": [
+      { "kind": "run", "name": "<script>alert('name-xss')</script>", "command": "javascript:alert(document.cookie)", "source": "HKCU", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "SãoPauloTool ☺ ツ", "command": "C:\\Users\\João Silva\\AppData\\Local\\prog.exe --token=abc123 --password=Secret#1", "source": "HKCU", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "NullCommand", "command": null, "source": null, "view": null, "origin": "registry" }
+    ],
+    "logonTasks": [ { "name": "Task<script>", "path": "\\<img src=x onerror=alert(2)>\\", "state": null, "action": "http://evil.example/<script>", "arguments": null } ],
+    "autoServices": [
+      { "name": "svcÜnïcode", "displayName": "Serviço <b>negrito</b> & teste", "state": null, "startMode": "Auto", "delayed": null, "pathName": null, "account": "SCHEDULED-PC\\Maria" }
+    ]
+  },
+  "performance": {
+    "memory": null,
+    "cpu": null,
+    "topProcessesByMemory": null,
+    "topProcessesByCpu": null,
+    "pagefile": null
+  },
+  "storage": null,
+  "modules": [
+    { "id": "system", "status": "partial", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 900, "commands": ["Get-CimInstance"], "errors": [ { "where": "system.cpu", "message": "failed" } ], "limits": [] },
+    { "id": "events", "status": "failed", "startedAt": "2026-11-19T12:00:01.000Z", "durationMs": 800, "commands": ["Get-WinEvent"], "errors": [ { "where": "module", "message": "log read failed" } ], "limits": [] },
+    { "id": "startup", "status": "ok", "startedAt": "2026-11-19T12:00:02.000Z", "durationMs": 700, "commands": [], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}

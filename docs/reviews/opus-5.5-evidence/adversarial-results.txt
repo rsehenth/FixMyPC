@@ -1,0 +1,41 @@
+A1-priority-setter | scanner_ok=True violations=
+A2-affinity-setter | scanner_ok=True violations=
+A3-readonly-setter | scanner_ok=True violations=
+A4-attributes-setter | scanner_ok=True violations=
+A5-fileinfo-replace | scanner_ok=True violations=
+A6-unc-childitem | scanner_ok=True violations=
+A7-unc-evtx | scanner_ok=True violations=
+A8-secret-read | scanner_ok=True violations=
+C1-remove-item | scanner_ok=False violations=hard_banned_command
+C2-dynamic-call | scanner_ok=False violations=dynamic_invocation
+C3-dot-source | scanner_ok=False violations=dynamic_invocation
+C4-static-delete | scanner_ok=False violations=banned_method
+C5-instance-delete | scanner_ok=False violations=banned_method
+C6-opensubkey-write | scanner_ok=False violations=member_not_allowed
+C7-invoke-script | scanner_ok=False violations=member_not_allowed
+C8-computername | scanner_ok=False violations=parameter_not_allowed
+C9-type-from-string | scanner_ok=False violations=banned_method
+B0-baseline | score=100 status=ok conf=high cov=100
+B0-categories | storage:5/5 rem=30; events:5/5 rem=25; performance:3/3 rem=20; startup:0/0 rem=15; os:2/2 rem=10
+B1-failing-disk | score=88 status=ok conf=high deduction=12 findings=storage.disk_health_unhealthy,storage.smart_predict_failure,storage.disk_event_errors
+B2-worst-case | score=39 status=ok deduction=61 perCategory=storage-22,events-25,performance-8,startup-0,os-6
+B3-injection | raw_markup_hits=onerror=,onload= scriptTags=0 styleTags=1 bidiChar=False
+B3-template-cascade | 40 occurrences of provider '{1}9<b>x</b>' (ID 9) recently - worth reviewing that specific cause.
+B4-survives | S-1-5-21-1004336348 json=True html=True
+B4-survives | CDPUserSvc_4a7f3c json=True html=True
+B4-survives | S7DNNJ0W123456X json=True html=True
+B4-survives | WD-WCC6Y1234567 json=True html=True
+B4-survives | DESKTOP-AUDIT01 json=False html=False
+B4-survives | jsilva json=False html=False
+B5-order | storage.low_free_space(review_recommended,pen 6) > storage.disk_space_critical(attention,pen 10)
+B6-startup-high-count | state=finding
+B7-cpu-burst | severity=attention penalty=4 score=96 status=ok
+B8-english-in-ptBR | count=7
+B8-item | date from the built-in lifecycle snapshot (rules.json); it may be outdated - confirm with Microsoft lifecycle pages
+B8-item | a missing signature is common in legitimate tools; it is NOT evidence of malware
+B8-item | [system] gpu_ram_uint32 - VRAM above 4 GB is not precise.
+B8-item | [startup] startup_lnk_not_parsed - .lnk targets not resolved
+B8-item | [advanced] signature_absence_not_malware - NotSigned is not evidence of malware
+B8-item | The score is a review aid, not a hardware diagnosis, a warranty or a security certification.
+B8-item | Unknown or inaccessible checks never reduce the score - and never prove health.
+B9-startup-category | applicable=0 remaining=15 weight=15

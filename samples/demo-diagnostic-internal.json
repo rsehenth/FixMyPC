@@ -1,0 +1,1182 @@
+{
+    "schemaVersion":  "1.0.0",
+    "run":  {
+                "id":  "fmp-30e8b1bbcc",
+                "tool":  "FIX MY PC: Windows Diagnostic \u0026 Audit Skill",
+                "toolVersion":  "0.1.0",
+                "mode":  "full",
+                "language":  "pt-BR",
+                "synthetic":  true,
+                "startedAt":  "2026-11-19T14:28:00.000Z",
+                "finishedAt":  "2026-11-19T14:31:42.000Z",
+                "readOnlyPolicy":  {
+                                       "readOnly":  true,
+                                       "collectionWrites":  false,
+                                       "networkAccess":  false,
+                                       "elevation":  false,
+                                       "artifactWritesOnly":  true,
+                                       "artifactWriteScope":  "user-authorized output directory only",
+                                       "enforcement":  "static AST allowlist scan before execution + tests",
+                                       "forbiddenExamples":  [
+                                                                 "registry/service/driver/policy changes",
+                                                                 "install/uninstall/update",
+                                                                 "start/stop/reconfigure services",
+                                                                 "scheduled task changes",
+                                                                 "disk or system repair (chkdsk/sfc/dism)",
+                                                                 "reboot/suspend/shutdown",
+                                                                 "cache/temp/log cleanup",
+                                                                 "PowerShell ExecutionPolicy changes",
+                                                                 "Win32_Product enumeration",
+                                                                 "powercfg /energy",
+                                                                 "perfmon /report",
+                                                                 "commands from log content, web content or AI suggestions"
+                                                             ]
+                                   }
+            },
+    "system":  {
+                   "os":  {
+                              "caption":  "Windows 11 Home",
+                              "version":  "10.0.22631",
+                              "buildNumber":  "22631",
+                              "displayVersion":  "23H2",
+                              "ubr":  4460,
+                              "currentBuild":  "22631",
+                              "editionId":  "Core",
+                              "architecture":  "64-bit",
+                              "installDate":  "2023-02-11T18:40:00.000Z",
+                              "lastBootAt":  "2026-11-07T08:20:00.000Z",
+                              "uptimeHours":  302.3
+                          },
+                   "cpu":  {
+                               "name":  "Exemplo CPU Notebook 6-Core 2.4GHz",
+                               "cores":  6,
+                               "logicalProcessors":  12,
+                               "maxClockMhz":  2400
+                           },
+                   "memory":  {
+                                  "totalBytes":  8589934592,
+                                  "freeBytes":  1503238553,
+                                  "availablePct":  17.5
+                              },
+                   "gpu":  [
+                               {
+                                   "name":  "Exemplo GPU Integrada",
+                                   "driverVersion":  "31.0.101.2115",
+                                   "status":  "OK"
+                               },
+                               {
+                                   "name":  "Exemplo GPU Dedicada",
+                                   "driverVersion":  "32.0.15.6094",
+                                   "status":  "OK"
+                               }
+                           ],
+                   "disks":  [
+                                 {
+                                     "index":  1,
+                                     "model":  "Exemplo SSD NVMe 512GB",
+                                     "sizeBytes":  512110190592,
+                                     "status":  "OK",
+                                     "interfaceType":  "NVMe"
+                                 },
+                                 {
+                                     "index":  2,
+                                     "model":  "Exemplo HDD 1TB",
+                                     "sizeBytes":  1000204886016,
+                                     "status":  "OK",
+                                     "interfaceType":  "SATA"
+                                 }
+                             ],
+                   "volumes":  [
+                                   {
+                                       "driveLetter":  "C:",
+                                       "label":  "Sistema",
+                                       "sizeBytes":  254663548928,
+                                       "freeBytes":  23174587696,
+                                       "freePct":  9.1,
+                                       "isSystem":  true
+                                   },
+                                   {
+                                       "driveLetter":  "D:",
+                                       "label":  "Dados",
+                                       "sizeBytes":  1000204886016,
+                                       "freeBytes":  600122931610,
+                                       "freePct":  60.0,
+                                       "isSystem":  false
+                                   }
+                               ]
+               },
+    "events":  {
+                   "windowDays":  7,
+                   "logs":  {
+                                "System":  {
+                                               "status":  "ok",
+                                               "totalEvents":  19,
+                                               "groups":  [
+                                                              {
+                                                                  "provider":  "Service Control Manager",
+                                                                  "eventId":  7000,
+                                                                  "count":  8,
+                                                                  "firstSeen":  "2026-11-13T09:00:00.000Z",
+                                                                  "lastSeen":  "2026-11-19T11:02:00.000Z",
+                                                                  "maxLevel":  2,
+                                                                  "sample":  "O serviço ExemploBackup falhou ao iniciar devido ao seguinte erro: O serviço não respondeu timely.",
+                                                                  "msgMissing":  false
+                                                              },
+                                                              {
+                                                                  "provider":  "Microsoft-Windows-Kernel-Power",
+                                                                  "eventId":  41,
+                                                                  "count":  2,
+                                                                  "firstSeen":  "2026-11-15T23:41:00.000Z",
+                                                                  "lastSeen":  "2026-11-19T00:12:00.000Z",
+                                                                  "maxLevel":  1,
+                                                                  "sample":  "O sistema foi reiniciado sem antes ser desligado corretamente.",
+                                                                  "msgMissing":  false
+                                                              },
+                                                              {
+                                                                  "provider":  "DistributedCOM",
+                                                                  "eventId":  10016,
+                                                                  "count":  6,
+                                                                  "firstSeen":  "2026-11-13T10:00:00.000Z",
+                                                                  "lastSeen":  "2026-11-12T10:00:00.000Z",
+                                                                  "maxLevel":  2,
+                                                                  "sample":  "As configurações de permissão específicas do componente não concedem a permissão de ativação local.",
+                                                                  "msgMissing":  false
+                                                              }
+                                                          ]
+                                           },
+                                "Application":  {
+                                                    "status":  "ok",
+                                                    "totalEvents":  4,
+                                                    "groups":  [
+                                                                   {
+                                                                       "provider":  "Application Error",
+                                                                       "eventId":  1000,
+                                                                       "count":  4,
+                                                                       "firstSeen":  "2026-11-16T20:15:00.000Z",
+                                                                       "lastSeen":  "2026-11-19T09:30:00.000Z",
+                                                                       "maxLevel":  2,
+                                                                       "sample":  "Nome do aplicativo com falha: exemploapp.exe, versão 3.2.1, carimbo de data/hora 0x6712aa.",
+                                                                       "msgMissing":  false
+                                                                   }
+                                                               ]
+                                                },
+                                "Security":  {
+                                                 "status":  "access_denied",
+                                                 "totalEvents":  null,
+                                                 "groups":  [
+
+                                                            ]
+                                             }
+                            },
+                   "security":  {
+                                    "status":  "access_denied",
+                                    "logonFailures":  null,
+                                    "firstSeen":  null,
+                                    "lastSeen":  null
+                                },
+                   "reliability":  {
+                                       "status":  "ok",
+                                       "records":  [
+                                                       {
+                                                           "source":  "Application Error",
+                                                           "eventId":  1000,
+                                                           "product":  "ExemploApp",
+                                                           "message":  "exemploapp.exe parou de funcionar",
+                                                           "at":  "2026-11-19T09:30:00.000Z"
+                                                       },
+                                                       {
+                                                           "source":  "Windows Defender",
+                                                           "eventId":  2000,
+                                                           "product":  "Microsoft Defender Antivirus",
+                                                           "message":  "Verificação rápida concluída",
+                                                           "at":  "2026-11-18T03:12:00.000Z"
+                                                       }
+                                                   ],
+                                       "metrics":  [
+                                                       {
+                                                           "at":  "2026-11-14T00:00:00.000Z",
+                                                           "stability":  9.82
+                                                       },
+                                                       {
+                                                           "at":  "2026-11-15T00:00:00.000Z",
+                                                           "stability":  9.9
+                                                       },
+                                                       {
+                                                           "at":  "2026-11-16T00:00:00.000Z",
+                                                           "stability":  6.11
+                                                       },
+                                                       {
+                                                           "at":  "2026-11-17T00:00:00.000Z",
+                                                           "stability":  8.87
+                                                       },
+                                                       {
+                                                           "at":  "2026-11-18T00:00:00.000Z",
+                                                           "stability":  9.55
+                                                       }
+                                                   ]
+                                   }
+               },
+    "startup":  {
+                    "items":  [
+                                  {
+                                      "kind":  "run",
+                                      "name":  "OneDrive",
+                                      "command":  "\"C:\\Users\\\u003cUserProfile\u003e\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe\" /background",
+                                      "source":  "HKCU",
+                                      "view":  "64",
+                                      "origin":  "registry"
+                                  },
+                                  {
+                                      "kind":  "run",
+                                      "name":  "ExemploBackupTray",
+                                      "command":  "\"C:\\Program Files\\ExemploBackup\\tray.exe\"",
+                                      "source":  "HKLM",
+                                      "view":  "64",
+                                      "origin":  "registry"
+                                  },
+                                  {
+                                      "kind":  "run",
+                                      "name":  "ExemploAudio",
+                                      "command":  "\"C:\\Program Files\\ExemploAudio\\audio.exe\" /quiet",
+                                      "source":  "HKLM",
+                                      "view":  "32",
+                                      "origin":  "registry"
+                                  },
+                                  {
+                                      "kind":  "run",
+                                      "name":  "ToolAntigo",
+                                      "command":  "C:\\Ferramentas\\toolantigo.exe",
+                                      "source":  "HKCU",
+                                      "view":  "64",
+                                      "origin":  "registry"
+                                  },
+                                  {
+                                      "kind":  "folder",
+                                      "name":  "ExemploAtalho.lnk",
+                                      "command":  null,
+                                      "source":  "user",
+                                      "view":  null,
+                                      "origin":  "startupFolder"
+                                  }
+                              ],
+                    "logonTasks":  [
+                                       {
+                                           "name":  "ExemploAtualizador",
+                                           "path":  "\\ExemploCorp\\",
+                                           "state":  "Ready",
+                                           "action":  "C:\\Program Files\\ExemploCorp\\updater.exe",
+                                           "arguments":  "/silencioso"
+                                       },
+                                       {
+                                           "name":  "OneDriveStandalone",
+                                           "path":  "\\Microsoft\\OneDrive\\",
+                                           "state":  "Ready",
+                                           "action":  "C:\\Users\\\u003cUserProfile\u003e\\AppData\\Local\\Microsoft\\OneDrive\\OneDriveStandaloneUpdater.exe",
+                                           "arguments":  null
+                                       }
+                                   ],
+                    "autoServices":  [
+                                         {
+                                             "name":  "ExemploBackupSvc",
+                                             "displayName":  "Serviço ExemploBackup",
+                                             "state":  "Stopped",
+                                             "startMode":  "Auto",
+                                             "delayed":  false,
+                                             "pathName":  "\"C:\\Program Files\\ExemploBackup\\svc.exe\"",
+                                             "account":  "LocalSystem"
+                                         },
+                                         {
+                                             "name":  "wuauserv",
+                                             "displayName":  "Windows Update",
+                                             "state":  "Running",
+                                             "startMode":  "Auto",
+                                             "delayed":  true,
+                                             "pathName":  "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+                                             "account":  "LocalSystem"
+                                         },
+                                         {
+                                             "name":  "ExemploAudioSvc",
+                                             "displayName":  "Áudio Exemplo",
+                                             "state":  "Running",
+                                             "startMode":  "Auto",
+                                             "delayed":  true,
+                                             "pathName":  "\"C:\\Program Files\\ExemploAudio\\audiosvc.exe\"",
+                                             "account":  "NT AUTHORITY\\LocalService"
+                                         }
+                                     ]
+                },
+    "performance":  {
+                        "memory":  {
+                                       "totalBytes":  8589934592,
+                                       "freeBytes":  1503238553,
+                                       "availablePct":  17.5,
+                                       "committedBytes":  7301444403,
+                                       "commitLimitBytes":  10158074266,
+                                       "commitPct":  71.9,
+                                       "availableMB":  1433
+                                   },
+                        "cpu":  {
+                                    "sampleCount":  3,
+                                    "requestedSamples":  3,
+                                    "intervalSec":  2,
+                                    "avgPercent":  34.7,
+                                    "maxPercent":  48.0,
+                                    "minPercent":  21.0,
+                                    "samples":  [
+                                                    {
+                                                        "at":  "2026-11-19T14:30:10.000Z",
+                                                        "percent":  21.0
+                                                    },
+                                                    {
+                                                        "at":  "2026-11-19T14:30:12.000Z",
+                                                        "percent":  35.0
+                                                    },
+                                                    {
+                                                        "at":  "2026-11-19T14:30:14.000Z",
+                                                        "percent":  48.0
+                                                    }
+                                                ]
+                                },
+                        "topProcessesByMemory":  [
+                                                     {
+                                                         "name":  "chrome",
+                                                         "id":  8142,
+                                                         "workingSetMB":  1842.6
+                                                     },
+                                                     {
+                                                         "name":  "explorer",
+                                                         "id":  3312,
+                                                         "workingSetMB":  402.1
+                                                     },
+                                                     {
+                                                         "name":  "Teams",
+                                                         "id":  9920,
+                                                         "workingSetMB":  611.4
+                                                     },
+                                                     {
+                                                         "name":  "exemploapp",
+                                                         "id":  5521,
+                                                         "workingSetMB":  288.7
+                                                     }
+                                                 ],
+                        "topProcessesByCpu":  [
+                                                  {
+                                                      "name":  "chrome",
+                                                      "id":  8142,
+                                                      "percentProcessorTime":  38.0
+                                                  },
+                                                  {
+                                                      "name":  "System",
+                                                      "id":  4,
+                                                      "percentProcessorTime":  4.2
+                                                  }
+                                              ],
+                        "pagefile":  {
+                                         "name":  "C:\\pagefile.sys",
+                                         "allocatedMB":  2048,
+                                         "currentUsageMB":  1820,
+                                         "peakUsageMB":  3044
+                                     }
+                    },
+    "storage":  {
+                    "volumes":  [
+                                    {
+                                        "driveLetter":  "C:",
+                                        "label":  "Sistema",
+                                        "sizeBytes":  254663548928,
+                                        "freeBytes":  23174587696,
+                                        "freePct":  9.1,
+                                        "isSystem":  true,
+                                        "healthStatus":  "Healthy",
+                                        "operationalStatus":  "Online"
+                                    },
+                                    {
+                                        "driveLetter":  "D:",
+                                        "label":  "Dados",
+                                        "sizeBytes":  1000204886016,
+                                        "freeBytes":  600122931610,
+                                        "freePct":  60.0,
+                                        "isSystem":  false,
+                                        "healthStatus":  "Healthy",
+                                        "operationalStatus":  "Online"
+                                    }
+                                ],
+                    "physicalDisks":  [
+                                          {
+                                              "index":  1,
+                                              "friendlyName":  "Exemplo SSD NVMe 512GB",
+                                              "mediaType":  "SSD",
+                                              "busType":  "NVMe",
+                                              "healthStatus":  "Healthy",
+                                              "operationalStatus":  "Online",
+                                              "sizeBytes":  512110190592
+                                          },
+                                          {
+                                              "index":  2,
+                                              "friendlyName":  "Exemplo HDD 1TB",
+                                              "mediaType":  "HDD",
+                                              "busType":  "SATA",
+                                              "healthStatus":  "Healthy",
+                                              "operationalStatus":  "Online",
+                                              "sizeBytes":  1000204886016
+                                          }
+                                      ],
+                    "smart":  {
+                                  "status":  "ok",
+                                  "checked":  2,
+                                  "items":  [
+                                                {
+                                                    "index":  1,
+                                                    "predictFailure":  false,
+                                                    "reason":  0,
+                                                    "active":  true
+                                                },
+                                                {
+                                                    "index":  2,
+                                                    "predictFailure":  false,
+                                                    "reason":  0,
+                                                    "active":  true
+                                                }
+                                            ]
+                              }
+                },
+    "advanced":  {
+                     "problemDevices":  {
+                                            "status":  "ok",
+                                            "count":  1,
+                                            "items":  [
+                                                          {
+                                                              "name":  "Exemplo Impressora Antiga",
+                                                              "deviceId":  "\u003cDeviceId\u003e",
+                                                              "code":  28
+                                                          }
+                                                      ]
+                                        },
+                     "driverInfo":  {
+                                        "status":  "ok",
+                                        "items":  [
+                                                      {
+                                                          "deviceName":  "Exemplo Impressora Antiga",
+                                                          "version":  null,
+                                                          "provider":  null,
+                                                          "signed":  null,
+                                                          "driverDate":  null
+                                                      }
+                                                  ]
+                                    },
+                     "defender":  {
+                                      "status":  "ok",
+                                      "data":  {
+                                                   "amServiceEnabled":  true,
+                                                   "antivirusEnabled":  true,
+                                                   "realTimeProtection":  true,
+                                                   "behaviorMonitor":  true,
+                                                   "signatureLastUpdated":  "2026-11-19T08:02:00.000Z",
+                                                   "signatureAgeDays":  0,
+                                                   "quickScanEnd":  "2026-11-18T03:00:00.000Z",
+                                                   "fullScanEnd":  "2026-10-02T05:14:00.000Z"
+                                               }
+                                  },
+                     "thirdPartyAv":  {
+                                          "status":  "ok",
+                                          "count":  0,
+                                          "items":  [
+
+                                                    ]
+                                      },
+                     "pendingReboot":  {
+                                           "status":  "ok",
+                                           "pendingWuReboot":  false,
+                                           "pendingCbs":  false,
+                                           "pendingFileRename":  false,
+                                           "any":  false
+                                       },
+                     "updates":  {
+                                     "status":  "not_collected",
+                                     "justification":  "Consultar o Windows Update via COM inicia atividade do agente de atualização e acesso à rede; não é passivo. Verifique em Configurações \u003e Windows Update."
+                                 },
+                     "hotfixes":  {
+                                      "status":  "ok",
+                                      "latest":  "2025-10-09T00:00:00.000Z",
+                                      "items":  [
+                                                    {
+                                                        "hotFixID":  "KB5044284",
+                                                        "description":  "Atualização Cumulativa",
+                                                        "installedOn":  "2025-10-09T00:00:00.000Z"
+                                                    },
+                                                    {
+                                                        "hotFixID":  "KB5039302",
+                                                        "description":  "Atualização Cumulativa",
+                                                        "installedOn":  "2025-08-14T00:00:00.000Z"
+                                                    }
+                                                ]
+                                  },
+                     "installedApps":  {
+                                           "status":  "ok",
+                                           "totalCount":  14,
+                                           "truncated":  false,
+                                           "items":  [
+                                                         {
+                                                             "displayName":  "Navegador Exemplo",
+                                                             "displayVersion":  "131.0.6778",
+                                                             "publisher":  "Exemplo Corp",
+                                                             "installDate":  "20250214",
+                                                             "estimatedSizeKB":  614400,
+                                                             "source":  "hklm64"
+                                                         },
+                                                         {
+                                                             "displayName":  "Suíte Office Exemplo",
+                                                             "displayVersion":  "2409",
+                                                             "publisher":  "Exemplo Soft",
+                                                             "installDate":  "20250214",
+                                                             "estimatedSizeKB":  2097152,
+                                                             "source":  "hklm64"
+                                                         },
+                                                         {
+                                                             "displayName":  "Antivírus Exemplo Free",
+                                                             "displayVersion":  "24.10",
+                                                             "publisher":  "Exemplo Security",
+                                                             "installDate":  "20250601",
+                                                             "estimatedSizeKB":  409600,
+                                                             "source":  "hklm32"
+                                                         },
+                                                         {
+                                                             "displayName":  "Jogo Exemplo",
+                                                             "displayVersion":  "2.3",
+                                                             "publisher":  "Exemplo Games",
+                                                             "installDate":  "20250910",
+                                                             "estimatedSizeKB":  83886080,
+                                                             "source":  "hkcu"
+                                                         }
+                                                     ]
+                                       },
+                     "signatures":  {
+                                        "status":  "ok",
+                                        "checked":  4,
+                                        "truncated":  false,
+                                        "items":  [
+                                                      {
+                                                          "file":  "tray.exe",
+                                                          "location":  "registry HKLM/64",
+                                                          "status":  "Valid",
+                                                          "signer":  "Exemplo Backup Ltda"
+                                                      },
+                                                      {
+                                                          "file":  "updater.exe",
+                                                          "location":  "logon task",
+                                                          "status":  "Valid",
+                                                          "signer":  "Exemplo Corp"
+                                                      },
+                                                      {
+                                                          "file":  "toolantigo.exe",
+                                                          "location":  "registry HKCU/64",
+                                                          "status":  "NotSigned",
+                                                          "signer":  null
+                                                      },
+                                                      {
+                                                          "file":  "OneDriveStandaloneUpdater.exe",
+                                                          "location":  "logon task",
+                                                          "status":  "Valid",
+                                                          "signer":  "Microsoft Corporation"
+                                                      }
+                                                  ]
+                                    }
+                 },
+    "modules":  [
+                    {
+                        "id":  "system",
+                        "status":  "ok",
+                        "startedAt":  "2026-11-19T14:28:00.000Z",
+                        "durationMs":  1543,
+                        "commands":  [
+                                         "Get-CimInstance",
+                                         "Get-ItemProperty"
+                                     ],
+                        "errors":  [
+
+                                   ],
+                        "limits":  [
+                                       {
+                                           "key":  "gpu_ram_uint32",
+                                           "detail":  "VRAM above 4 GB is not precise."
+                                       }
+                                   ]
+                    },
+                    {
+                        "id":  "events",
+                        "status":  "partial",
+                        "startedAt":  "2026-11-19T14:28:01.543Z",
+                        "durationMs":  42380,
+                        "commands":  [
+                                         "Get-WinEvent"
+                                     ],
+                        "errors":  [
+                                       {
+                                           "where":  "events.Security",
+                                           "message":  "Access denied"
+                                       }
+                                   ],
+                        "limits":  [
+                                       {
+                                           "key":  "security_log_needs_admin",
+                                           "detail":  "Security log requires admin"
+                                       }
+                                   ]
+                    },
+                    {
+                        "id":  "startup",
+                        "status":  "ok",
+                        "startedAt":  "2026-11-19T14:28:43.923Z",
+                        "durationMs":  3218,
+                        "commands":  [
+                                         "Get-CimInstance",
+                                         "Get-ItemProperty",
+                                         "Get-ScheduledTask",
+                                         "Get-ChildItem"
+                                     ],
+                        "errors":  [
+
+                                   ],
+                        "limits":  [
+                                       {
+                                           "key":  "startup_lnk_not_parsed",
+                                           "detail":  ".lnk targets not resolved"
+                                       }
+                                   ]
+                    },
+                    {
+                        "id":  "performance",
+                        "status":  "ok",
+                        "startedAt":  "2026-11-19T14:28:47.141Z",
+                        "durationMs":  8641,
+                        "commands":  [
+                                         "Get-CimInstance",
+                                         "Get-Process",
+                                         "Start-Sleep"
+                                     ],
+                        "errors":  [
+
+                                   ],
+                        "limits":  [
+                                       {
+                                           "key":  "cpu_short_window",
+                                           "detail":  "~6 s window",
+                                           "values":  [
+                                                          6
+                                                      ]
+                                       }
+                                   ]
+                    },
+                    {
+                        "id":  "storage",
+                        "status":  "ok",
+                        "startedAt":  "2026-11-19T14:28:55.782Z",
+                        "durationMs":  2418,
+                        "commands":  [
+                                         "Get-CimInstance",
+                                         "Get-PhysicalDisk",
+                                         "Get-Volume"
+                                     ],
+                        "errors":  [
+
+                                   ],
+                        "limits":  [
+
+                                   ]
+                    },
+                    {
+                        "id":  "advanced",
+                        "status":  "ok",
+                        "startedAt":  "2026-11-19T14:28:58.200Z",
+                        "durationMs":  163800,
+                        "commands":  [
+                                         "Get-CimInstance",
+                                         "Get-AuthenticodeSignature",
+                                         "Get-HotFix",
+                                         "Get-MpComputerStatus",
+                                         "Get-ItemProperty",
+                                         "Test-Path"
+                                     ],
+                        "errors":  [
+
+                                   ],
+                        "limits":  [
+                                       {
+                                           "key":  "signature_absence_not_malware",
+                                           "detail":  "NotSigned is not evidence of malware"
+                                       }
+                                   ]
+                    }
+                ],
+    "evidence":  [
+                     {
+                         "id":  "ev-system-1",
+                         "module":  "system",
+                         "checkId":  "system.os",
+                         "at":  "2026-11-19T14:28:01.000Z",
+                         "summary":  "Win32_OperatingSystem + registry CurrentVersion"
+                     },
+                     {
+                         "id":  "ev-events-1",
+                         "module":  "events",
+                         "checkId":  "events.log.System",
+                         "at":  "2026-11-19T14:28:40.000Z",
+                         "summary":  "Get-WinEvent FilterHashtable (Level 1,2; 7 dias; MaxEvents 2000)"
+                     },
+                     {
+                         "id":  "ev-storage-1",
+                         "module":  "storage",
+                         "checkId":  "storage.volumes",
+                         "at":  "2026-11-19T14:28:57.000Z",
+                         "summary":  "Volumes + Get-PhysicalDisk + SMART predict"
+                     }
+                 ],
+    "subChecks":  [
+
+                  ],
+    "analysis":  {
+                     "mode":  "full",
+                     "findings":  [
+                                      {
+                                          "id":  "storage.low_free_space",
+                                          "category":  "storage",
+                                          "severity":  "review_recommended",
+                                          "penalty":  6,
+                                          "confidence":  "high",
+                                          "dedupeGroup":  "storage.space",
+                                          "analysisOnly":  false,
+                                          "values":  {
+                                                         "drive":  "C:",
+                                                         "freePct":  9.1,
+                                                         "lowPct":  10
+                                                     },
+                                          "measured":  {
+                                                           "drive":  "C:",
+                                                           "freePct":  9.1,
+                                                           "freeBytes":  23174587696,
+                                                           "sizeBytes":  254663548928
+                                                       }
+                                      },
+                                      {
+                                          "id":  "events.unexpected_shutdown",
+                                          "category":  "events",
+                                          "severity":  "attention",
+                                          "penalty":  6,
+                                          "confidence":  "medium",
+                                          "dedupeGroup":  "events.stability",
+                                          "analysisOnly":  false,
+                                          "values":  {
+                                                         "count":  2
+                                                     }
+                                      },
+                                      {
+                                          "id":  "os.w10_eol",
+                                          "category":  "os",
+                                          "severity":  "review_recommended",
+                                          "penalty":  6,
+                                          "confidence":  "medium",
+                                          "dedupeGroup":  null,
+                                          "analysisOnly":  false,
+                                          "values":  {
+                                                         "endOfSupport":  "2025-11-11",
+                                                         "displayVersion":  "23H2",
+                                                         "os":  "Windows 11"
+                                                     },
+                                          "limitations":  [
+                                                              "date from the built-in lifecycle snapshot (rules.json); it may be outdated - confirm with Microsoft lifecycle pages"
+                                                          ],
+                                          "limitationKeys":  [
+                                                                 "lim.lifecycle_snapshot_date"
+                                                             ]
+                                      },
+                                      {
+                                          "id":  "startup.unsigned_autostart",
+                                          "category":  "startup",
+                                          "severity":  "info",
+                                          "penalty":  0,
+                                          "confidence":  "high",
+                                          "dedupeGroup":  null,
+                                          "analysisOnly":  true,
+                                          "values":  {
+                                                         "count":  1,
+                                                         "names":  "toolantigo.exe"
+                                                     },
+                                          "limitations":  [
+                                                              "a missing signature is common in legitimate tools; it is NOT evidence of malware"
+                                                          ],
+                                          "limitationKeys":  [
+                                                                 "lim.unsigned_not_malware"
+                                                             ]
+                                      },
+                                      {
+                                          "id":  "os.outdated_patch",
+                                          "category":  "os",
+                                          "severity":  "attention",
+                                          "penalty":  0,
+                                          "confidence":  "medium",
+                                          "dedupeGroup":  null,
+                                          "analysisOnly":  true,
+                                          "values":  {
+                                                         "days":  407,
+                                                         "thresholdDays":  365
+                                                     }
+                                      },
+                                      {
+                                          "id":  "devices.problem_codes",
+                                          "category":  "os",
+                                          "severity":  "attention",
+                                          "penalty":  0,
+                                          "confidence":  "high",
+                                          "dedupeGroup":  null,
+                                          "analysisOnly":  true,
+                                          "values":  {
+                                                         "count":  1,
+                                                         "names":  "Exemplo Impressora Antiga (code 28)"
+                                                     }
+                                      }
+                                  ],
+                     "checks":  [
+                                    {
+                                        "id":  "storage.low_free_space",
+                                        "category":  "storage",
+                                        "state":  "finding",
+                                        "severity":  "review_recommended",
+                                        "penalty":  6,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  "storage.space",
+                                        "analysisOnly":  false,
+                                        "measured":  {
+                                                         "drive":  "C:",
+                                                         "freePct":  9.1,
+                                                         "freeBytes":  23174587696,
+                                                         "sizeBytes":  254663548928
+                                                     }
+                                    },
+                                    {
+                                        "id":  "storage.disk_space_critical",
+                                        "category":  "storage",
+                                        "state":  "pass",
+                                        "severity":  "review_recommended",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  "storage.space",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "storage.disk_health_unhealthy",
+                                        "category":  "storage",
+                                        "state":  "pass",
+                                        "severity":  "review_recommended",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  "storage.health",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "storage.smart_predict_failure",
+                                        "category":  "storage",
+                                        "state":  "pass",
+                                        "severity":  "review_recommended",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  "storage.health",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "storage.disk_event_errors",
+                                        "category":  "storage",
+                                        "state":  "pass",
+                                        "severity":  "review_recommended",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  "storage.health",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "events.critical_recurring",
+                                        "category":  "events",
+                                        "state":  "pass",
+                                        "severity":  "review_recommended",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  "events.recurrence",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "events.error_concentration",
+                                        "category":  "events",
+                                        "state":  "pass",
+                                        "severity":  "review_recommended",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  "events.recurrence",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "events.whea_hardware",
+                                        "category":  "events",
+                                        "state":  "pass",
+                                        "severity":  "review_recommended",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "events.unexpected_shutdown",
+                                        "category":  "events",
+                                        "state":  "finding",
+                                        "severity":  "attention",
+                                        "penalty":  6,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  "events.stability",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "events.bsod",
+                                        "category":  "events",
+                                        "state":  "pass",
+                                        "severity":  "attention",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  "events.stability",
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "perf.cpu_sustained_high",
+                                        "category":  "performance",
+                                        "state":  "pass",
+                                        "severity":  "info",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "perf.ram_pressure",
+                                        "category":  "performance",
+                                        "state":  "pass",
+                                        "severity":  "info",
+                                        "penalty":  0,
+                                        "confidence":  "low",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "perf.commit_pressure",
+                                        "category":  "performance",
+                                        "state":  "pass",
+                                        "severity":  "attention",
+                                        "penalty":  0,
+                                        "confidence":  "low",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "os.w10_eol",
+                                        "category":  "os",
+                                        "state":  "finding",
+                                        "severity":  "review_recommended",
+                                        "penalty":  6,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  false,
+                                        "limitations":  [
+                                                            "date from the built-in lifecycle snapshot (rules.json); it may be outdated - confirm with Microsoft lifecycle pages"
+                                                        ],
+                                        "limitationKeys":  [
+                                                               "lim.lifecycle_snapshot_date"
+                                                           ]
+                                    },
+                                    {
+                                        "id":  "os.long_uptime",
+                                        "category":  "os",
+                                        "state":  "pass",
+                                        "severity":  "info",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  false
+                                    },
+                                    {
+                                        "id":  "startup.unsigned_autostart",
+                                        "category":  "startup",
+                                        "state":  "finding",
+                                        "severity":  "info",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  true,
+                                        "limitations":  [
+                                                            "a missing signature is common in legitimate tools; it is NOT evidence of malware"
+                                                        ],
+                                        "limitationKeys":  [
+                                                               "lim.unsigned_not_malware"
+                                                           ]
+                                    },
+                                    {
+                                        "id":  "startup.high_count",
+                                        "category":  "startup",
+                                        "state":  "pass",
+                                        "severity":  "info",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  true,
+                                        "measured":  {
+                                                         "tasks":  2,
+                                                         "services":  3,
+                                                         "items":  5
+                                                     }
+                                    },
+                                    {
+                                        "id":  "os.pending_reboot",
+                                        "category":  "os",
+                                        "state":  "pass",
+                                        "severity":  "info",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  true
+                                    },
+                                    {
+                                        "id":  "os.outdated_patch",
+                                        "category":  "os",
+                                        "state":  "finding",
+                                        "severity":  "attention",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  true
+                                    },
+                                    {
+                                        "id":  "security.defender_disabled",
+                                        "category":  "os",
+                                        "state":  "pass",
+                                        "severity":  "attention",
+                                        "penalty":  0,
+                                        "confidence":  "medium",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  true
+                                    },
+                                    {
+                                        "id":  "security.third_party_av",
+                                        "category":  "os",
+                                        "state":  "pass",
+                                        "severity":  "info",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  true
+                                    },
+                                    {
+                                        "id":  "devices.problem_codes",
+                                        "category":  "os",
+                                        "state":  "finding",
+                                        "severity":  "attention",
+                                        "penalty":  0,
+                                        "confidence":  "high",
+                                        "dedupeGroup":  null,
+                                        "analysisOnly":  true
+                                    }
+                                ]
+                 },
+    "healthScore":  {
+                        "scoreAlgorithmVersion":  "2.0",
+                        "score":  79,
+                        "uncappedScore":  79,
+                        "scoreCap":  null,
+                        "capped":  false,
+                        "status":  "ok",
+                        "confidence":  "high",
+                        "riskLevel":  "elevated",
+                        "riskReasons":  [
+                                            "events.unexpected_shutdown",
+                                            "os.w10_eol",
+                                            "storage.low_free_space"
+                                        ],
+                        "coveragePct":  100,
+                        "applicableChecks":  15,
+                        "attemptedChecks":  15,
+                        "coveredChecks":  15,
+                        "eligibleWeight":  85,
+                        "totalDeduction":  18,
+                        "categories":  [
+                                           {
+                                               "category":  "storage",
+                                               "weight":  30,
+                                               "eligible":  true,
+                                               "excludedReason":  null,
+                                               "deduction":  6,
+                                               "remaining":  24,
+                                               "coveredChecks":  5,
+                                               "applicableChecks":  5
+                                           },
+                                           {
+                                               "category":  "events",
+                                               "weight":  25,
+                                               "eligible":  true,
+                                               "excludedReason":  null,
+                                               "deduction":  6,
+                                               "remaining":  19,
+                                               "coveredChecks":  5,
+                                               "applicableChecks":  5
+                                           },
+                                           {
+                                               "category":  "performance",
+                                               "weight":  20,
+                                               "eligible":  true,
+                                               "excludedReason":  null,
+                                               "deduction":  0,
+                                               "remaining":  20,
+                                               "coveredChecks":  3,
+                                               "applicableChecks":  3
+                                           },
+                                           {
+                                               "category":  "startup",
+                                               "weight":  15,
+                                               "eligible":  false,
+                                               "excludedReason":  "no_base_rules",
+                                               "deduction":  0,
+                                               "remaining":  15,
+                                               "coveredChecks":  0,
+                                               "applicableChecks":  0
+                                           },
+                                           {
+                                               "category":  "os",
+                                               "weight":  10,
+                                               "eligible":  true,
+                                               "excludedReason":  null,
+                                               "deduction":  6,
+                                               "remaining":  4,
+                                               "coveredChecks":  2,
+                                               "applicableChecks":  2
+                                           }
+                                       ],
+                        "penaltyItems":  [
+                                             {
+                                                 "ruleId":  "events.unexpected_shutdown",
+                                                 "category":  "events",
+                                                 "points":  6
+                                             },
+                                             {
+                                                 "ruleId":  "os.w10_eol",
+                                                 "category":  "os",
+                                                 "points":  6
+                                             },
+                                             {
+                                                 "ruleId":  "storage.low_free_space",
+                                                 "category":  "storage",
+                                                 "points":  6
+                                             }
+                                         ],
+                        "limitations":  [
+                                            "The score is a review aid, not a hardware diagnosis, a warranty or a security certification.",
+                                            "Unknown or inaccessible checks never reduce the score - and never prove health."
+                                        ],
+                        "limitationKeys":  [
+                                               "score.limitation.reviewAid",
+                                               "score.limitation.unknownNeverProves"
+                                           ]
+                    }
+}

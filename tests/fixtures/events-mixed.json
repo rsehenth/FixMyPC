@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-events", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "simple", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:01:02.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 11 Pro", "version": "10.0.26200", "buildNumber": "26200",
+      "displayVersion": "25H2", "ubr": 6584, "architecture": "64-bit",
+      "lastBootAt": "2026-11-19T04:30:00.000Z", "uptimeHours": 7.5
+    },
+    "cpu": { "name": "Example Gaming CPU", "cores": 8, "logicalProcessors": 16, "maxClockMhz": 4800 },
+    "memory": { "totalBytes": 34359738368, "freeBytes": 17179869184, "availablePct": 50.0 },
+    "gpu": [], "disks": [], "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 994662862848, "freeBytes": 397865145139, "freePct": 40.0, "isSystem": true } ]
+  },
+  "events": {
+    "windowDays": 7,
+    "logs": {
+      "System": { "status": "ok", "totalEvents": 21, "groups": [
+        {
+          "provider": "Microsoft-Windows-Kernel-Power", "eventId": 41, "count": 3,
+          "firstSeen": "2026-11-14T22:10:00.000Z", "lastSeen": "2026-11-19T02:31:00.000Z", "maxLevel": 1,
+          "sample": "The system has rebooted without cleanly shutting down first.", "msgMissing": false
+        },
+        {
+          "provider": "Microsoft-Windows-WER-SystemErrorReporting", "eventId": 1001, "count": 1,
+          "firstSeen": "2026-11-19T02:32:00.000Z", "lastSeen": "2026-11-19T02:32:00.000Z", "maxLevel": 2,
+          "sample": "The computer has rebooted from a bugcheck. The bugcheck was: 0x00000133.", "msgMissing": false
+        },
+        {
+          "provider": "WHEA-Logger", "eventId": 18, "count": 2,
+          "firstSeen": "2026-11-17T14:00:00.000Z", "lastSeen": "2026-11-18T19:45:00.000Z", "maxLevel": 2,
+          "sample": "A corrected hardware error has occurred.", "msgMissing": false
+        },
+        {
+          "provider": "Service Control Manager", "eventId": 7000, "count": 12,
+          "firstSeen": "2026-11-13T08:00:00.000Z", "lastSeen": "2026-11-19T09:12:00.000Z", "maxLevel": 2,
+          "sample": "The ExampleService service failed to start due to the following error.", "msgMissing": false
+        }
+      ] },
+      "Application": { "status": "ok", "totalEvents": 0, "groups": [] }
+    }
+  },
+  "performance": {
+    "memory": { "totalBytes": 34359738368, "freeBytes": 17179869184, "availablePct": 50.0, "committedBytes": 1024, "commitLimitBytes": 4096, "commitPct": 25.0, "availableMB": 16384 },
+    "cpu": {
+      "sampleCount": 3, "requestedSamples": 3, "intervalSec": 2, "avgPercent": 15.0, "maxPercent": 20.0, "minPercent": 10.0,
+      "samples": [ { "at": "2026-11-19T12:00:30.000Z", "percent": 10.0 }, { "at": "2026-11-19T12:00:32.000Z", "percent": 15.0 }, { "at": "2026-11-19T12:00:34.000Z", "percent": 20.0 } ]
+    },
+    "topProcessesByMemory": [], "topProcessesByCpu": []
+  },
+  "storage": {
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 994662862848, "freeBytes": 397865145139, "freePct": 40.0, "isSystem": true, "healthStatus": "Healthy", "operationalStatus": "Online" } ],
+    "physicalDisks": [ { "index": 1, "friendlyName": "Example SSD", "mediaType": "SSD", "busType": "NVMe", "healthStatus": "Healthy", "operationalStatus": "Online", "sizeBytes": 1000204886016 } ],
+    "smart": { "status": "ok", "checked": 1, "items": [ { "index": 1, "predictFailure": false, "reason": 0, "active": true } ] }
+  },
+  "modules": [
+    { "id": "system", "status": "ok", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 1520, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "events", "status": "ok", "startedAt": "2026-11-19T12:00:02.000Z", "durationMs": 34500, "commands": ["Get-WinEvent"], "errors": [], "limits": [] },
+    { "id": "startup", "status": "ok", "startedAt": "2026-11-19T12:00:37.000Z", "durationMs": 2800, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "performance", "status": "ok", "startedAt": "2026-11-19T12:00:40.000Z", "durationMs": 8100, "commands": ["Get-CimInstance", "Get-Process", "Start-Sleep"], "errors": [], "limits": [] },
+    { "id": "storage", "status": "ok", "startedAt": "2026-11-19T12:00:48.000Z", "durationMs": 2080, "commands": ["Get-CimInstance"], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}

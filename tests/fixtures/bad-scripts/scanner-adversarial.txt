@@ -1,0 +1,225 @@
+# Scanner regression cases (FMP-02 / FMP-03). PARSED ONLY - never executed.
+# Header: ### <id> | reject|accept | <expected violation type or -> | <role, default collector>
+# Source: A1-A8 are the Opus 5.5 audit snippets, verbatim.
+
+### A1-priority-setter | reject | property_setter_not_allowed
+$p = @(Get-Process -ErrorAction Stop); $p[0].PriorityClass = 'Idle'
+
+### A2-affinity-setter | reject | property_setter_not_allowed
+$p = @(Get-Process -ErrorAction Stop); $p[0].ProcessorAffinity = 1
+
+### A3-readonly-setter | reject | property_setter_not_allowed
+$f = Get-Item -LiteralPath 'C:\fmp-audit-nonexistent\a.txt'; $f.IsReadOnly = $true
+
+### A4-attributes-setter | reject | property_setter_not_allowed
+$d = Get-Item -LiteralPath 'C:\fmp-audit-nonexistent'; $d.Attributes = 'Hidden'
+
+### A5-fileinfo-replace | reject | receiver_not_proven
+$f = Get-Item -LiteralPath 'C:\fmp-audit-nonexistent\a.txt'; $null = $f.Replace('C:\fmp-audit-nonexistent\b.txt', 'C:\fmp-audit-nonexistent\c.bak')
+
+### A6-unc-childitem | reject | path_not_allowed
+$x = @(Get-ChildItem -LiteralPath '\\audit.invalid\share' -ErrorAction Stop)
+
+### A7-unc-evtx | reject | query_not_allowed
+$e = Get-WinEvent -FilterHashtable @{ Path = '\\audit.invalid\s\x.evtx' } -MaxEvents 1
+
+### A8-secret-read | reject | path_not_allowed
+$k = Get-Content -LiteralPath 'C:\fmp-audit-nonexistent\.ssh\id_rsa' -Raw
+
+### X01-loop-variable-setter | reject | property_setter_not_allowed
+$p = @(Get-Process -ErrorAction Stop); foreach ($x in $p) { $x.PriorityClass = 'Idle' }
+
+### X02-direct-call-result-setter | reject | property_setter_not_allowed
+(Get-Process -ErrorAction Stop)[0].PriorityClass = 'Idle'
+
+### X03-member-enumeration-setter | reject | property_setter_not_allowed
+$p = Get-Process -ErrorAction Stop; $p.PriorityClass = 'Idle'
+
+### X04-postfix-increment-setter | reject | property_setter_not_allowed
+$p = Get-Process -ErrorAction Stop; $p.BasePriority++
+
+### X05-static-setter | reject | property_setter_not_allowed
+[Environment]::CurrentDirectory = 'C:\Windows'
+
+### X06-compound-assignment-setter | reject | property_setter_not_allowed
+$p = Get-Process -ErrorAction Stop; $p.PriorityClass += 1
+
+### X07-index-set-on-live-object | reject | index_setter_not_allowed
+$p = Get-Process -ErrorAction Stop; $p[0] = 1
+
+### X08-retyped-receiver | reject | receiver_not_proven
+$x = @{}; $x = Get-Item -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager'; $null = $x.Replace('a', 'b')
+
+### X09-remove-on-live-object | reject | receiver_not_proven
+$k = Get-Item -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager'; $k.Remove('a')
+
+### X10-clear-on-live-object | reject | receiver_not_proven
+$p = Get-Process -ErrorAction Stop; $p.Clear()
+
+### X11-stop-on-live-object | reject | receiver_not_proven
+$p = @(Get-Process -ErrorAction Stop); $p[0].Stop()
+
+### X12-add-on-call-result | reject | receiver_not_proven
+(Get-Process -ErrorAction Stop).Add(1)
+
+### X13-replace-on-literal-array-element | reject | receiver_not_proven
+$h = @{ a = Get-Item -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' }; $null = $h.a.Replace('a', 'b')
+
+### X14-replace-on-param | reject | receiver_not_proven
+function Get-FmpDemo { param($Value) return $Value.Replace('a', 'b') }
+
+### P01-device-path | reject | path_not_allowed
+Get-Item -LiteralPath '\\?\C:\Windows' -ErrorAction Stop
+
+### P02-dot-device-path | reject | path_not_allowed
+Get-Item -LiteralPath '\\.\pipe\x' -ErrorAction Stop
+
+### P03-provider-qualified-unc | reject | path_not_allowed
+Test-Path -LiteralPath 'Microsoft.PowerShell.Core\FileSystem::\\h\s' -ErrorAction Stop
+
+### P04-registry-provider-qualified | reject | path_not_allowed
+Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SAM' -ErrorAction Stop
+
+### P05-registry-sam | reject | path_not_allowed
+Get-ItemProperty -Path 'HKLM:\SAM\SAM' -ErrorAction Stop
+
+### P06-registry-not-allowlisted | reject | path_not_allowed
+Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList' -ErrorAction Stop
+
+### P07-positional-unc | reject | path_not_allowed
+Get-ChildItem '\\h\s'
+
+### P08-pipeline-path | reject | pipeline_path_input
+$d = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'; $d | Get-ChildItem
+
+### P09-path-from-untrusted-registry-value | reject | path_argument_not_proven
+$cfg = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -ErrorAction Stop; $x = Get-ChildItem -LiteralPath $cfg.Updater -File -ErrorAction Stop
+
+### P10-path-from-unchecked-variable | reject | path_argument_not_proven
+$d = [Environment]::GetFolderPath([Environment+SpecialFolder]::Startup, [Environment+SpecialFolderOption]::DoNotVerify); $x = Get-ChildItem -LiteralPath $d -File -ErrorAction Stop
+
+### P11-path-built-by-concatenation | reject | path_argument_not_proven
+$x = Get-Content -LiteralPath ('C:\Users\' + $env:USERNAME + '\x.txt') -Raw
+
+### P12-unc-literal-assigned-then-used | reject | path_not_allowed
+$d = '\\audit.invalid\share'; $x = Get-ChildItem -LiteralPath $d -File -ErrorAction Stop
+
+### P13-unc-literal-in-core-role | reject | path_not_allowed | core
+$x = Get-ChildItem -LiteralPath '\\audit.invalid\share' -ErrorAction Stop
+
+### P14-secret-literal-in-core-role | reject | path_not_allowed | core
+$k = Get-Content -LiteralPath 'C:\Users\x\.aws\credentials' -Raw
+
+### P15-unc-static-reader | reject | path_not_allowed | core
+$r = [System.IO.StreamReader]::new('\\audit.invalid\share\x.txt')
+
+### Q01-evtx-path-key | reject | query_not_allowed
+$e = Get-WinEvent -FilterHashtable @{ LogName = 'System'; Path = 'C:\x.evtx' } -MaxEvents 1
+
+### Q02-filter-not-literal | reject | query_not_allowed
+$ht = @{ LogName = 'System' }; $e = Get-WinEvent -FilterHashtable $ht -MaxEvents 1
+
+### Q03-logname-unc | reject | query_not_allowed
+$e = Get-WinEvent -FilterHashtable @{ LogName = '\\h\log' } -MaxEvents 1
+
+### Q04-logname-not-allowlisted | reject | query_not_allowed
+$e = Get-WinEvent -FilterHashtable @{ LogName = 'Microsoft-Windows-PowerShell/Operational' } -MaxEvents 1
+
+### Q05-logname-unproven-variable | reject | query_not_allowed
+function Get-FmpDemo { param([string]$Name) return (Get-WinEvent -FilterHashtable @{ LogName = $Name } -MaxEvents 1) }
+
+### Q06-unknown-filter-key | reject | query_not_allowed
+$e = Get-WinEvent -FilterHashtable @{ LogName = 'System'; ComputerName = 'h' } -MaxEvents 1
+
+### Q07-cim-namespace | reject | query_not_allowed
+$x = Get-CimInstance -Namespace 'root\subscription' -ClassName 'AntiVirusProduct' -ErrorAction Stop
+
+### Q08-cim-unc-namespace | reject | query_not_allowed
+$x = Get-CimInstance -Namespace '\\h\root\cimv2' -ClassName 'Win32_OperatingSystem' -ErrorAction Stop
+
+### Q09-cim-class-not-allowlisted | reject | query_not_allowed
+$x = Get-CimInstance -ClassName 'Win32_Share' -ErrorAction Stop
+
+### Q10-cim-class-variable | reject | query_not_allowed
+function Get-FmpDemo { param([string]$C) return (Get-CimInstance -ClassName $C -ErrorAction Stop) }
+
+### Q11-cim-filter-built-from-data | reject | query_not_allowed
+function Get-FmpDemo { param([string]$N) return (Get-CimInstance -ClassName Win32_Service -Filter ("Name='" + $N + "'") -ErrorAction Stop) }
+
+### Q12-cim-class-missing | reject | query_not_allowed
+$x = Get-CimInstance -Namespace 'root\cimv2' -ErrorAction Stop
+
+### G01-hashtable-and-ordered-setters | accept | -
+$h = @{}; $h['a'] = 1; $h.b = 2; $o = [ordered]@{}; $o.x = 1; $o['y'] = 2; $o.x += 1
+
+### G02-list-operations | accept | -
+$l = New-Object System.Collections.Generic.List[object]; $l.Add(1); $l.Remove(1); $l.Clear(); $l.Sort()
+
+### G03-stringbuilder-and-string-replace | accept | -
+$sb = New-Object System.Text.StringBuilder; [void]$sb.Append('x'); $s = 'abc'; $t = $s.Replace('a', 'b'); $u = ([string]$t).Replace('b', 'c')
+
+### G04-stopwatch | accept | -
+$sw = [System.Diagnostics.Stopwatch]::StartNew(); $sw.Stop()
+
+### G05-nested-containers | accept | -
+$d = [ordered]@{ items = New-Object System.Collections.Generic.List[object]; map = [ordered]@{} }; $d.items.Add(1); $d['map']['k'] = 1; $d['map']['z'] = 2
+
+### X15-nested-member-setter | reject | property_setter_not_allowed
+$d = [ordered]@{ map = [ordered]@{} }; $d.map.z = 2
+
+### G06-typed-dictionary-parameter | accept | -
+function Get-FmpDemo { param([System.Collections.IDictionary]$Ctx) $Ctx['a'] = 1; $Ctx.data['b'] = 2; $l = New-Object System.Collections.Generic.List[object]; $l.Add(1); $Ctx['errors'] = $l }
+
+### G07-registry-allowlisted | accept | -
+$a = Test-Path -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired' -ErrorAction Stop; $b = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -ErrorAction Stop
+
+### G08-registry-uninstall-wildcard | accept | -
+$k = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction Stop
+
+### G09-startup-folder-checked-path | accept | -
+$dir = [Environment]::GetFolderPath([Environment+SpecialFolder]::Startup, [Environment+SpecialFolderOption]::DoNotVerify); $checked = $null; $checked = Get-FmpCheckedPath $dir; $x = Get-ChildItem -LiteralPath $checked -File -ErrorAction Stop
+
+### G10-safe-registry-variable | accept | -
+$p = Get-FmpSafeRegistryPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'; $x = Get-ItemProperty -Path $p -ErrorAction Stop
+
+### G11-winevent-literal-filter | accept | -
+$cutoff = (Get-Date).AddDays(-7); $e = Get-WinEvent -FilterHashtable @{ LogName = 'System'; Level = @(1, 2); StartTime = $cutoff } -MaxEvents 10 -ErrorAction Stop
+
+### G12-winevent-literal-loop | accept | -
+$cutoff = (Get-Date).AddDays(-7); foreach ($n in @('System', 'Application')) { $e = Get-WinEvent -FilterHashtable @{ LogName = $n; StartTime = $cutoff } -MaxEvents 10 -ErrorAction Stop }
+
+### G13-cim-allowlisted | accept | -
+$a = Get-CimInstance -Namespace 'root\wmi' -ClassName 'MSStorageDriver_FailurePredictStatus' -OperationTimeoutSec 15 -ErrorAction Stop; $b = Get-CimInstance -ClassName Win32_Service -Filter "StartMode='Auto'" -OperationTimeoutSec 15 -ErrorAction Stop
+
+### G14-unc-pattern-as-comparison-operand | accept | -
+$dir = 'x'; if ($dir -like '\\*') { $dir = $null }
+
+### G15-property-read-and-count | accept | -
+$p = @(Get-Process -ErrorAction Stop); $n = $p.Count; $first = $p[0].Name
+
+### G16-proven-local-list-clear | accept | -
+$d = @{ items = New-Object System.Collections.Generic.List[object] }; $d.items.Clear()
+
+### G17-proven-data-function-dict | accept | -
+$ctx = New-FmpCollectorContext -Name 'x'; $ctx.Clear()
+
+### X16-unproven-member-clear | reject | receiver_not_proven
+$d = @{ numbers = [int]7 }; $d.numbers.Clear()
+
+### X17-missing-dict-member-clear | reject | receiver_not_proven
+$d = @{}; $d.missing.Clear()
+
+### X18-typed-dict-param-member-add | reject | receiver_not_proven
+function Get-FmpDemo { param([System.Collections.IDictionary]$Ctx) $Ctx.errors.Add(1) }
+
+### X19-element-from-unknown-source | reject | receiver_not_proven
+$d = @{ file = (Get-Item -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager') }; $d.file.Clear()
+
+### X20-mutable-method-on-system-object | reject | receiver_not_proven
+$p = Get-Process -ErrorAction Stop; $p.Remove(0)
+
+### X21-unproven-member-on-data-function | reject | receiver_not_proven
+$ctx = New-FmpCollectorContext -Name 'x'; $ctx.unknown.Clear()
+
+### X22-serializable-not-assumed-dict | reject | receiver_not_proven
+$s = ConvertTo-FmpSerializable 'abc'; $s.Clear()

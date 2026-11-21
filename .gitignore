@@ -1,0 +1,112 @@
+# FIX MY PC - keep audit output, personal data, tool state and secrets out of git.
+# Synthetic demos live in samples/ (named demo-*, provisional.*, unavailable.*) and stay tracked.
+# Scope: this file protects UNTRACKED files only. It does not remove anything already
+# tracked or committed. The runtime ZIP scope is separate: see distribution-manifest.json.
+
+# --- Real audit output (may describe a real machine) ---
+/out/
+**/report.html
+**/diagnostic-sanitized.json
+**/diagnostic-internal.json
+*.diagnostic.json
+audit-*/
+auditoria-*/
+fmp-tests-*/
+
+# --- Real-machine validation records kept local until the owner decides (contain local
+#     account/path and exact host details; see docs/reviews/SONNET-5.5-STAGE11.1-GIT-PUBLICATION-AUDIT.md) ---
+/docs/reviews/SONNET-5.5-STAGE9-REAL-SIMPLE-VALIDATION.md
+
+# --- Legacy screenshots (pre-v2 art, show the Windows logo): never publish; 27 files ---
+/docs/screenshots/desktop-*.png
+/docs/screenshots/tablet-*.png
+/docs/screenshots/mobile-*.png
+/docs/screenshots/lang-*.png
+/docs/screenshots/print-a4-p*.png
+/docs/screenshots/state-*.png
+/docs/screenshots/stage7-*.png
+
+# --- Browser / test logs and screenshots captured during local checks ---
+.playwright-mcp/
+.playwright-cli/
+.playwright/
+playwright-report/
+test-results/
+*.log
+
+# --- Agent and tool caches (per-machine, may hold paths and prompts) ---
+.claude/
+.codex/
+.commandcode/
+.impeccable/
+.cursor/
+.gemini/
+.agents/
+.windsurf/
+graphify-out/
+.context-mode/
+.superpowers/
+.codebase-memory/
+
+# --- IDE and editor state ---
+.vscode/
+.idea/
+.vs/
+*.code-workspace
+*.suo
+*.user
+
+# --- Python (agent tooling) and Node caches / environments ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+node_modules/
+npm-debug.log*
+.npm/
+
+# --- Temporary, scratch and backup files ---
+tmp/
+temp/
+scratch/
+*.tmp
+*.bak
+*.backup
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+~$*
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# --- Secrets and credentials (templates such as .env.example stay tracked) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.p12
+*.key
+*.snk
+secrets.*
+credentials.*
+*.token
+id_rsa*
+id_ed25519*
+
+# --- Archives and packages built locally (release is a separate, reviewed step) ---
+dist/
+build/
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.nupkg

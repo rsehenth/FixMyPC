@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-spike", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "simple", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:00:52.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 11 Pro", "version": "10.0.26200", "buildNumber": "26200",
+      "displayVersion": "25H2", "ubr": 6584, "architecture": "64-bit",
+      "lastBootAt": "2026-11-19T06:00:00.000Z", "uptimeHours": 6.0
+    },
+    "cpu": { "name": "Example Laptop CPU", "cores": 8, "logicalProcessors": 16, "maxClockMhz": 4600 },
+    "memory": { "totalBytes": 8589934592, "freeBytes": 536870912, "availablePct": 6.3 },
+    "gpu": [], "disks": [], "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 190000000000, "freePct": 39.9, "isSystem": true } ]
+  },
+  "events": {
+    "windowDays": 7,
+    "logs": {
+      "System": { "status": "ok", "totalEvents": 0, "groups": [] },
+      "Application": { "status": "ok", "totalEvents": 0, "groups": [] }
+    }
+  },
+  "startup": { "items": [], "logonTasks": [], "autoServices": [] },
+  "performance": {
+    "memory": { "totalBytes": 8589934592, "freeBytes": 536870912, "availablePct": 6.3, "committedBytes": 9544371763, "commitLimitBytes": 10307921510, "commitPct": 92.6, "availableMB": 512 },
+    "cpu": {
+      "sampleCount": 3, "requestedSamples": 3, "intervalSec": 2, "avgPercent": 96.0, "maxPercent": 97.0, "minPercent": 95.0,
+      "samples": [ { "at": "2026-11-19T12:00:30.000Z", "percent": 95.0 }, { "at": "2026-11-19T12:00:32.000Z", "percent": 96.0 }, { "at": "2026-11-19T12:00:34.000Z", "percent": 97.0 } ]
+    },
+    "topProcessesByMemory": [ { "name": "buildworker", "id": 9310, "workingSetMB": 4021.8 } ],
+    "topProcessesByCpu": [ { "name": "buildworker", "id": 9310, "percentProcessorTime": 92.0 } ],
+    "pagefile": { "name": "C:\\pagefile.sys", "allocatedMB": 2048, "currentUsageMB": 1980, "peakUsageMB": 2046 }
+  },
+  "storage": {
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 190000000000, "freePct": 39.9, "isSystem": true, "healthStatus": "Healthy", "operationalStatus": "Online" } ],
+    "physicalDisks": [ { "index": 1, "friendlyName": "Example SSD 512GB", "mediaType": "SSD", "busType": "NVMe", "healthStatus": "Healthy", "operationalStatus": "Online", "sizeBytes": 512110190592 } ],
+    "smart": { "status": "ok", "checked": 1, "items": [ { "index": 1, "predictFailure": false, "reason": 0, "active": true } ] }
+  },
+  "modules": [
+    { "id": "system", "status": "ok", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 1480, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "events", "status": "ok", "startedAt": "2026-11-19T12:00:02.000Z", "durationMs": 18900, "commands": ["Get-WinEvent"], "errors": [], "limits": [] },
+    { "id": "startup", "status": "ok", "startedAt": "2026-11-19T12:00:21.000Z", "durationMs": 2700, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "performance", "status": "ok", "startedAt": "2026-11-19T12:00:24.000Z", "durationMs": 8300, "commands": ["Get-CimInstance", "Get-Process", "Start-Sleep"], "errors": [], "limits": [] },
+    { "id": "storage", "status": "ok", "startedAt": "2026-11-19T12:00:32.000Z", "durationMs": 2100, "commands": ["Get-CimInstance"], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}

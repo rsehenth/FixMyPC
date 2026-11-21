@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-startup", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "full", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:01:20.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 11 Pro", "version": "10.0.26200", "buildNumber": "26200",
+      "displayVersion": "25H2", "ubr": 6584, "architecture": "64-bit",
+      "lastBootAt": "2026-11-19T07:00:00.000Z", "uptimeHours": 5.0
+    },
+    "cpu": { "name": "Example CPU", "cores": 8, "logicalProcessors": 16, "maxClockMhz": 4000 },
+    "memory": { "totalBytes": 34359738368, "freeBytes": 20552058880, "availablePct": 59.8 },
+    "gpu": [], "disks": [],
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 994662862848, "freeBytes": 497331431424, "freePct": 50.0, "isSystem": true } ]
+  },
+  "events": {
+    "windowDays": 7,
+    "logs": {
+      "System": { "status": "ok", "totalEvents": 0, "groups": [] },
+      "Application": { "status": "ok", "totalEvents": 0, "groups": [] },
+      "Security": { "status": "ok", "totalEvents": 0, "groups": [] }
+    },
+    "security": { "status": "ok", "logonFailures": 0, "firstSeen": null, "lastSeen": null }
+  },
+  "startup": {
+    "items": [
+      { "kind": "run", "name": "App001", "command": "\"C:\\Program Files\\App001\\app001.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App002", "command": "\"C:\\Program Files\\App002\\app002.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App003", "command": "\"C:\\Program Files\\App003\\app003.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App004", "command": "\"C:\\Program Files\\App004\\app004.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App005", "command": "\"C:\\Program Files\\App005\\app005.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App006", "command": "\"C:\\Program Files\\App006\\app006.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App007", "command": "\"C:\\Program Files\\App007\\app007.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App008", "command": "\"C:\\Program Files\\App008\\app008.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App009", "command": "\"C:\\Program Files\\App009\\app009.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App010", "command": "\"C:\\Program Files\\App010\\app010.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App011", "command": "\"C:\\Program Files\\App011\\app011.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "App012", "command": "\"C:\\Program Files\\App012\\app012.exe\"", "source": "HKLM", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "UtilityTool (unsigned)", "command": "C:\\Tools\\utilitytool.exe /background", "source": "HKCU", "view": "64", "origin": "registry" },
+      { "kind": "run", "name": "LegacyHelper (unsigned)", "command": "C:\\Legacy\\legacyhelper.exe", "source": "HKCU", "view": "64", "origin": "registry" }
+    ],
+    "logonTasks": [ { "name": "ExampleUpdaterTask", "path": "\\ExampleCorp\\", "state": "Ready", "action": "C:\\Program Files\\ExampleCorp\\updater.exe", "arguments": "/silent" } ],
+    "autoServices": []
+  },
+  "performance": {
+    "memory": { "totalBytes": 34359738368, "freeBytes": 20552058880, "availablePct": 59.8, "committedBytes": 6442450944, "commitLimitBytes": 40596367360, "commitPct": 15.9, "availableMB": 19600 },
+    "cpu": {
+      "sampleCount": 3, "requestedSamples": 3, "intervalSec": 2, "avgPercent": 11.0, "maxPercent": 14.0, "minPercent": 8.0,
+      "samples": [ { "at": "2026-11-19T12:00:30.000Z", "percent": 8.0 }, { "at": "2026-11-19T12:00:32.000Z", "percent": 11.0 }, { "at": "2026-11-19T12:00:34.000Z", "percent": 14.0 } ]
+    },
+    "topProcessesByMemory": [], "topProcessesByCpu": []
+  },
+  "storage": {
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 994662862848, "freeBytes": 497331431424, "freePct": 50.0, "isSystem": true, "healthStatus": "Healthy", "operationalStatus": "Online" } ],
+    "physicalDisks": [ { "index": 1, "friendlyName": "Example SSD", "mediaType": "SSD", "busType": "NVMe", "healthStatus": "Healthy", "operationalStatus": "Online", "sizeBytes": 1000204886016 } ],
+    "smart": { "status": "ok", "checked": 1, "items": [ { "index": 1, "predictFailure": false, "reason": 0, "active": true } ] }
+  },
+  "advanced": {
+    "problemDevices": { "status": "ok", "count": 0, "items": [] },
+    "defender": { "status": "ok", "data": { "amServiceEnabled": true, "antivirusEnabled": true, "realTimeProtection": true, "behaviorMonitor": true, "signatureLastUpdated": "2026-11-19T09:04:00.000Z", "signatureAgeDays": 0, "quickScanEnd": "2026-11-15T03:00:00.000Z", "fullScanEnd": null } },
+    "thirdPartyAv": { "status": "ok", "count": 0, "items": [] },
+    "pendingReboot": { "status": "ok", "pendingWuReboot": false, "pendingCbs": false, "pendingFileRename": false, "any": false },
+    "updates": { "status": "not_collected", "justification": "not passive" },
+    "hotfixes": { "status": "ok", "latest": "2026-11-11T00:00:00.000Z", "items": [ { "hotFixID": "KB5050000", "description": "Cumulative Update", "installedOn": "2026-11-11T00:00:00.000Z" } ] },
+    "installedApps": { "status": "ok", "totalCount": 1, "truncated": false, "items": [ { "displayName": "Example App", "displayVersion": "1.0", "publisher": "Example", "installDate": "20250101", "estimatedSizeKB": 1024, "source": "hklm64" } ] },
+    "signatures": { "status": "ok", "checked": 4, "truncated": false, "items": [
+      { "file": "app001.exe", "location": "registry HKLM/64", "status": "Valid", "signer": "Vendor One" },
+      { "file": "updater.exe", "location": "logon task", "status": "Valid", "signer": "Example Corp" },
+      { "file": "utilitytool.exe", "location": "registry HKCU/64", "status": "NotSigned", "signer": null },
+      { "file": "legacyhelper.exe", "location": "registry HKCU/64", "status": "NotSigned", "signer": null }
+    ] }
+  },
+  "modules": [
+    { "id": "system", "status": "ok", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 1490, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "events", "status": "ok", "startedAt": "2026-11-19T12:00:02.000Z", "durationMs": 19100, "commands": ["Get-WinEvent"], "errors": [], "limits": [] },
+    { "id": "startup", "status": "ok", "startedAt": "2026-11-19T12:00:21.000Z", "durationMs": 2720, "commands": ["Get-CimInstance", "Get-ScheduledTask"], "errors": [], "limits": [] },
+    { "id": "performance", "status": "ok", "startedAt": "2026-11-19T12:00:24.000Z", "durationMs": 8140, "commands": ["Get-CimInstance", "Get-Process", "Start-Sleep"], "errors": [], "limits": [] },
+    { "id": "storage", "status": "ok", "startedAt": "2026-11-19T12:00:32.000Z", "durationMs": 2150, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "advanced", "status": "ok", "startedAt": "2026-11-19T12:00:34.000Z", "durationMs": 43100, "commands": ["Get-CimInstance", "Get-AuthenticodeSignature"], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}

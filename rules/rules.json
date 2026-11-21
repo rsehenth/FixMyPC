@@ -1,0 +1,261 @@
+{
+  "version": "0.1.0",
+  "weights": {
+    "storage": 30,
+    "events": 25,
+    "performance": 20,
+    "startup": 15,
+    "os": 10
+  },
+  "coverage": {
+    "provisionalBelowPct": 60,
+    "unavailableBelowPct": 35
+  },
+  "riskGates": {
+    "critical": { "scoreCap": 49 }
+  },
+  "scoringNotes": [
+    "Score = 100 x (sum of eligible weights - deductions) / sum of eligible weights. A category is eligible only when it has at least one base rule with penalty > 0 AND at least one of its base checks produced evidence (pass or finding); otherwise it is reported as excluded and contributes no points.",
+    "A proven critical storage failure (Windows HealthStatus 'Unhealthy' or SMART PredictFailure=true, base rules only) sets riskLevel 'critical' and caps the score at riskGates.critical.scoreCap. riskLevel is independent from score status (availability) and from confidence (data quality).",
+    "Only findings with state 'finding' and penalty > 0 reduce the score.",
+    "Penalties are capped per category at its weight; 'unknown', 'access_denied', 'unsupported', 'not_collected' and 'error' states never reduce the score.",
+    "Rules sharing a dedupeGroup count only once (highest penalty in the group).",
+    "The base metric uses exactly the rules whose modes include 'simple', in both audit modes. Full-mode-only rules are analysis-only (penalty 0).",
+    "Informative findings never penalize.",
+    "Severity scale (FMP-05): info < attention < review_recommended. Inside one dedupeGroup the rule with the higher penalty never has a lower severity, so the visual priority never contradicts the score; ties are broken by penalty. perf.cpu_sustained_high keeps its id for compatibility but is an informative observation about a ~4 s sample (FMP-07)."
+  ],
+  "windowsLifecycle": {
+    "source": "Built-in static snapshot of Microsoft Home/Pro lifecycle end dates (see docs/methodology.md). May be outdated; builds not listed return 'unknown', never a penalty.",
+    "entries": [
+      { "os": "Windows 10", "displayVersion": "22H2", "endOfSupport": "2025-10-14" },
+      { "os": "Windows 10", "displayVersion": "21H2", "endOfSupport": "2023-06-13" },
+      { "os": "Windows 11", "displayVersion": "25H2", "endOfSupport": "2027-10-13" },
+      { "os": "Windows 11", "displayVersion": "24H2", "endOfSupport": "2026-10-13" },
+      { "os": "Windows 11", "displayVersion": "23H2", "endOfSupport": "2025-11-11" },
+      { "os": "Windows 11", "displayVersion": "22H2", "endOfSupport": "2024-10-08" },
+      { "os": "Windows 11", "displayVersion": "21H2", "endOfSupport": "2023-10-10" }
+    ]
+  },
+  "rules": [
+    {
+      "id": "storage.low_free_space",
+      "category": "storage",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 6,
+      "confidence": "high",
+      "dedupeGroup": "storage.space",
+      "threshold": { "lowPct": 10 }
+    },
+    {
+      "id": "storage.disk_space_critical",
+      "category": "storage",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 10,
+      "confidence": "high",
+      "dedupeGroup": "storage.space",
+      "threshold": { "criticalPct": 5 }
+    },
+    {
+      "id": "storage.disk_health_unhealthy",
+      "category": "storage",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 12,
+      "confidence": "high",
+      "dedupeGroup": "storage.health",
+      "threshold": {}
+    },
+    {
+      "id": "storage.smart_predict_failure",
+      "category": "storage",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 8,
+      "confidence": "medium",
+      "dedupeGroup": "storage.health",
+      "threshold": {}
+    },
+    {
+      "id": "storage.disk_event_errors",
+      "category": "storage",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 6,
+      "confidence": "medium",
+      "dedupeGroup": "storage.health",
+      "threshold": { "recentHours": 48 }
+    },
+    {
+      "id": "events.critical_recurring",
+      "category": "events",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 10,
+      "confidence": "medium",
+      "dedupeGroup": "events.recurrence",
+      "threshold": { "minCount": 5, "recentHours": 48 }
+    },
+    {
+      "id": "events.error_concentration",
+      "category": "events",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 4,
+      "confidence": "medium",
+      "dedupeGroup": "events.recurrence",
+      "threshold": { "minCount": 30, "recentHours": 48 }
+    },
+    {
+      "id": "events.whea_hardware",
+      "category": "events",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 8,
+      "confidence": "medium",
+      "dedupeGroup": null,
+      "threshold": {}
+    },
+    {
+      "id": "events.unexpected_shutdown",
+      "category": "events",
+      "modes": ["simple", "full"],
+      "severity": "attention",
+      "penalty": 6,
+      "confidence": "medium",
+      "dedupeGroup": "events.stability",
+      "threshold": { "minCount": 2, "windowDays": 7 }
+    },
+    {
+      "id": "events.bsod",
+      "category": "events",
+      "modes": ["simple", "full"],
+      "severity": "attention",
+      "penalty": 8,
+      "confidence": "medium",
+      "dedupeGroup": "events.stability",
+      "threshold": {}
+    },
+    {
+      "id": "perf.cpu_sustained_high",
+      "category": "performance",
+      "modes": ["simple", "full"],
+      "severity": "info",
+      "penalty": 0,
+      "confidence": "medium",
+      "dedupeGroup": null,
+      "threshold": { "minSamples": 3, "pctThreshold": 90 }
+    },
+    {
+      "id": "perf.ram_pressure",
+      "category": "performance",
+      "modes": ["simple", "full"],
+      "severity": "info",
+      "penalty": 0,
+      "confidence": "low",
+      "dedupeGroup": null,
+      "threshold": { "minAvailablePct": 10, "minAvailableGB": 2 }
+    },
+    {
+      "id": "perf.commit_pressure",
+      "category": "performance",
+      "modes": ["simple", "full"],
+      "severity": "attention",
+      "penalty": 4,
+      "confidence": "low",
+      "dedupeGroup": null,
+      "threshold": { "pctThreshold": 90 }
+    },
+    {
+      "id": "os.w10_eol",
+      "category": "os",
+      "modes": ["simple", "full"],
+      "severity": "review_recommended",
+      "penalty": 6,
+      "confidence": "medium",
+      "dedupeGroup": null,
+      "threshold": {}
+    },
+    {
+      "id": "os.long_uptime",
+      "category": "os",
+      "modes": ["simple", "full"],
+      "severity": "info",
+      "penalty": 0,
+      "confidence": "high",
+      "dedupeGroup": null,
+      "threshold": { "daysThreshold": 60 }
+    },
+    {
+      "id": "startup.unsigned_autostart",
+      "category": "startup",
+      "modes": ["full"],
+      "severity": "info",
+      "penalty": 0,
+      "confidence": "high",
+      "dedupeGroup": null,
+      "threshold": {}
+    },
+    {
+      "id": "startup.high_count",
+      "category": "startup",
+      "modes": ["full"],
+      "severity": "info",
+      "penalty": 0,
+      "confidence": "high",
+      "dedupeGroup": null,
+      "threshold": { "threshold": 30 }
+    },
+    {
+      "id": "os.pending_reboot",
+      "category": "os",
+      "modes": ["full"],
+      "severity": "info",
+      "penalty": 0,
+      "confidence": "high",
+      "dedupeGroup": null,
+      "threshold": {}
+    },
+    {
+      "id": "os.outdated_patch",
+      "category": "os",
+      "modes": ["full"],
+      "severity": "attention",
+      "penalty": 0,
+      "confidence": "medium",
+      "dedupeGroup": null,
+      "threshold": { "daysThreshold": 365 }
+    },
+    {
+      "id": "security.defender_disabled",
+      "category": "os",
+      "modes": ["full"],
+      "severity": "attention",
+      "penalty": 0,
+      "confidence": "medium",
+      "dedupeGroup": null,
+      "threshold": {}
+    },
+    {
+      "id": "security.third_party_av",
+      "category": "os",
+      "modes": ["full"],
+      "severity": "info",
+      "penalty": 0,
+      "confidence": "high",
+      "dedupeGroup": null,
+      "threshold": {}
+    },
+    {
+      "id": "devices.problem_codes",
+      "category": "os",
+      "modes": ["full"],
+      "severity": "attention",
+      "penalty": 0,
+      "confidence": "high",
+      "dedupeGroup": null,
+      "threshold": {}
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0.0",
+  "run": {
+    "id": "fmp-fixture-advanced", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "mode": "full", "language": "pt-BR", "synthetic": true,
+    "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:01:30.000Z"
+  },
+  "system": {
+    "os": {
+      "caption": "Windows 11 Pro", "version": "10.0.26200", "buildNumber": "26200",
+      "displayVersion": "25H2", "ubr": 6584, "architecture": "64-bit",
+      "lastBootAt": "2026-11-14T10:00:00.000Z", "uptimeHours": 122.0
+    },
+    "cpu": { "name": "Example CPU", "cores": 6, "logicalProcessors": 12, "maxClockMhz": 3600 },
+    "memory": { "totalBytes": 17179869184, "freeBytes": 7730941133, "availablePct": 45.0 },
+    "gpu": [ { "name": "Example WiFi Display Adapter", "driverVersion": "30.0.100.1", "status": "Error" } ],
+    "disks": [],
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 238053931008, "freePct": 50.0, "isSystem": true } ]
+  },
+  "events": {
+    "windowDays": 7,
+    "logs": {
+      "System": { "status": "ok", "totalEvents": 0, "groups": [] },
+      "Application": { "status": "ok", "totalEvents": 0, "groups": [] },
+      "Security": { "status": "access_denied", "totalEvents": null, "groups": [] }
+    },
+    "security": { "status": "access_denied", "logonFailures": null, "firstSeen": null, "lastSeen": null }
+  },
+  "startup": {
+    "items": [
+      { "kind": "run", "name": "OldTool", "command": "C:\\Legacy\\oldtool.exe", "source": "HKCU", "view": "64", "origin": "registry" }
+    ],
+    "logonTasks": [],
+    "autoServices": []
+  },
+  "performance": {
+    "memory": { "totalBytes": 17179869184, "freeBytes": 7730941133, "availablePct": 45.0, "committedBytes": 5368709120, "commitLimitBytes": 20401094656, "commitPct": 26.3, "availableMB": 7372 },
+    "cpu": {
+      "sampleCount": 3, "requestedSamples": 3, "intervalSec": 2, "avgPercent": 13.0, "maxPercent": 18.0, "minPercent": 8.0,
+      "samples": [ { "at": "2026-11-19T12:00:30.000Z", "percent": 8.0 }, { "at": "2026-11-19T12:00:32.000Z", "percent": 13.0 }, { "at": "2026-11-19T12:00:34.000Z", "percent": 18.0 } ]
+    },
+    "topProcessesByMemory": [], "topProcessesByCpu": []
+  },
+  "storage": {
+    "volumes": [ { "driveLetter": "C:", "label": "", "sizeBytes": 476107862016, "freeBytes": 238053931008, "freePct": 50.0, "isSystem": true, "healthStatus": "Healthy", "operationalStatus": "Online" } ],
+    "physicalDisks": [],
+    "smart": { "status": "unsupported", "checked": 0, "items": [] }
+  },
+  "advanced": {
+    "problemDevices": { "status": "ok", "count": 1, "items": [
+      { "name": "Example WiFi Display Adapter", "deviceId": "<DeviceId>", "code": 28 }
+    ] },
+    "driverInfo": { "status": "ok", "items": [
+      { "deviceName": "Example WiFi Display Adapter", "version": null, "provider": null, "signed": null, "driverDate": null }
+    ] },
+    "defender": { "status": "ok", "data": { "amServiceEnabled": true, "antivirusEnabled": true, "realTimeProtection": false, "behaviorMonitor": true, "signatureLastUpdated": "2026-10-01T09:04:00.000Z", "signatureAgeDays": 49, "quickScanEnd": null, "fullScanEnd": null } },
+    "thirdPartyAv": { "status": "ok", "count": 0, "items": [] },
+    "pendingReboot": { "status": "ok", "pendingWuReboot": true, "pendingCbs": false, "pendingFileRename": false, "any": true },
+    "updates": { "status": "not_collected", "justification": "not passive" },
+    "hotfixes": { "status": "ok", "latest": "2025-10-14T00:00:00.000Z", "items": [ { "hotFixID": "KB5044284", "description": "Cumulative Update", "installedOn": "2025-10-14T00:00:00.000Z" } ] },
+    "installedApps": { "status": "ok", "totalCount": 1, "truncated": false, "items": [ { "displayName": "Example Tool", "displayVersion": "2.1", "publisher": "Legacy Soft", "installDate": "20240510", "estimatedSizeKB": 51200, "source": "hkcu" } ] },
+    "signatures": { "status": "ok", "checked": 1, "truncated": false, "items": [
+      { "file": "oldtool.exe", "location": "registry HKCU/64", "status": "NotSigned", "signer": null }
+    ] }
+  },
+  "modules": [
+    { "id": "system", "status": "ok", "startedAt": "2026-11-19T12:00:00.000Z", "durationMs": 1510, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "events", "status": "partial", "startedAt": "2026-11-19T12:00:02.000Z", "durationMs": 18800, "commands": ["Get-WinEvent"], "errors": [ { "where": "events.Security", "message": "Access denied" } ], "limits": [] },
+    { "id": "startup", "status": "ok", "startedAt": "2026-11-19T12:00:21.000Z", "durationMs": 2650, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "performance", "status": "ok", "startedAt": "2026-11-19T12:00:24.000Z", "durationMs": 8110, "commands": ["Get-CimInstance", "Start-Sleep"], "errors": [], "limits": [] },
+    { "id": "storage", "status": "partial", "startedAt": "2026-11-19T12:00:32.000Z", "durationMs": 2190, "commands": ["Get-CimInstance"], "errors": [], "limits": [] },
+    { "id": "advanced", "status": "ok", "startedAt": "2026-11-19T12:00:34.000Z", "durationMs": 55300, "commands": ["Get-CimInstance", "Get-MpComputerStatus", "Get-HotFix", "Get-AuthenticodeSignature"], "errors": [], "limits": [] }
+  ],
+  "evidence": [],
+  "subChecks": []
+}
