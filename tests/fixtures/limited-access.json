@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "run": {
-    "id": "fmp-fixture-noadmin", "tool": "FIX MY PC: Windows Diagnostic & Audit Skill", "toolVersion": "0.1.0",
+    "id": "fmp-fixture-noadmin", "tool": "FIX MY PC: PC Diagnostic & Audit Skill", "toolVersion": "0.1.0",
     "mode": "full", "language": "pt-BR", "synthetic": true,
     "startedAt": "2026-11-19T12:00:00.000Z", "finishedAt": "2026-11-19T12:00:58.000Z"
   },

@@ -14,6 +14,101 @@
   "riskGates": {
     "critical": { "scoreCap": 49 }
   },
+  "diagnosis": {
+    "version": "1",
+    "notes": [
+      "Deterministic symptom-oriented questions over the observation window and Windows history (src/analysis/Diagnosis.ps1). They never change the score and never assert a cause.",
+      "Thresholds are review triggers, not proof of a defect: latency, queue and CPU limits differ across NVMe, SATA, HDD, virtual disks and workloads."
+    ],
+    "observation": {
+      "intervalSeconds": 5,
+      "minSeconds": 15,
+      "maxSeconds": 300,
+      "maxSamples": 61,
+      "defaultSeconds": { "slow": 60, "general": 45, "boot": 30, "crash": 30 }
+    },
+    "eventWindowDays": { "general": 7, "slow": 7, "boot": 7, "crash": 30 },
+    "bootHistoryDays": 60,
+    "eventCatalog": {
+      "windowDays": { "general": 30, "slow": 30, "boot": 30, "crash": 30 },
+      "maxPerProvider": 300
+    },
+    "depths": {
+      "standard": { "categories": ["H", "P", "N"] },
+      "deep": { "categories": ["H", "P", "N", "C", "D"] }
+    },
+    "budgets": { "standardMs": 45000, "deepMs": 120000, "hardMs": 180000, "maxInvestigations": 10, "maxLevel": 2 },
+    "codes": {
+      "liveKernelTimeouts": ["117", "141"],
+      "liveKernel": { "117": "VIDEO_TDR_TIMEOUT_DETECTED", "141": "VIDEO_ENGINE_TIMEOUT_DETECTED", "193": "VIDEO_DXGKRNL_LIVEDUMP" }
+    },
+    "investigations": [
+      { "id": "gpu_events", "level": 1, "category": "H", "hypotheses": ["graphics_driver_instability"], "budgetMs": 5000,
+        "trigger": { "or": [ { "symptom": ["crash"] }, { "eventFamily": "graphics" } ] } },
+      { "id": "wer_events", "level": 1, "category": "H", "hypotheses": ["application_failures", "graphics_driver_instability"], "budgetMs": 10000,
+        "trigger": { "or": [ { "symptom": ["crash"] }, { "eventFamily": "graphics" }, { "question": "crash_history", "answers": ["yes", "partial"] } ] } },
+      { "id": "net_ports", "level": 1, "category": "N", "hypotheses": ["port_exhaustion_active"], "budgetMs": 14000,
+        "trigger": { "eventFamily": "network" } },
+      { "id": "service_hosts", "level": 1, "category": "P", "hypotheses": ["cpu_saturation", "memory_pressure", "disk_saturation"], "budgetMs": 3000,
+        "trigger": { "topProcess": "svchost" } },
+      { "id": "gpu_use", "level": 1, "category": "P", "hypotheses": ["graphics_driver_instability"], "budgetMs": 8000,
+        "trigger": { "eventFamily": "graphics" } },
+      { "id": "storage_reliability", "level": 1, "category": "D", "hypotheses": ["storage_path_instability"], "budgetMs": 5000,
+        "trigger": { "or": [ { "symptom": ["crash"] }, { "question": "storage_errors", "answers": ["yes"] }, { "question": "storage_slow", "answers": ["yes"] }, { "question": "storage_signals", "answers": ["yes", "partial"] } ] } },
+      { "id": "confirm_peak", "level": 2, "category": "C", "hypotheses": ["cpu_saturation", "memory_pressure", "disk_saturation"], "budgetMs": 35000,
+        "trigger": { "or": [ { "question": "cpu_load", "answers": ["partial"] }, { "question": "memory_pressure", "answers": ["partial"] }, { "question": "storage_slow", "answers": ["partial"] } ] } }
+    ],
+    "hypotheses": [
+      { "id": "graphics_driver_instability", "signals": [ { "question": "graphics_timeout" }, { "question": "graphics_events" } ] },
+      { "id": "application_failures", "signals": [ { "question": "wer_failures" } ] },
+      { "id": "storage_path_instability", "signals": [ { "question": "storage_signals" }, { "question": "storage_errors" }, { "question": "storage_device" } ] },
+      { "id": "disk_saturation", "signals": [ { "question": "storage_busy" }, { "question": "storage_slow" }, { "confirm": "disk" } ] },
+      { "id": "memory_pressure", "signals": [ { "question": "memory_pressure" }, { "question": "process_commit" }, { "confirm": "memory" } ] },
+      { "id": "cpu_saturation", "signals": [ { "question": "cpu_load" }, { "confirm": "cpu" } ] },
+      { "id": "port_exhaustion_active", "signals": [ { "question": "ports_current" } ] },
+      { "id": "port_exhaustion_history", "signals": [ { "question": "network_ports" } ] },
+      { "id": "hardware_error_reported", "signals": [ { "question": "crash_history", "valueAbove": { "key": "whea", "min": 0 } } ] }
+    ],
+    "correlation": {
+      "graphicsLiveKernelSec": 120,
+      "maxTimelineRows": 60,
+      "pairs": [
+        { "id": "graphics_timeout", "a": ["nvlddmkm|153"], "b": ["Display|4101"], "windowSec": 120 },
+        { "id": "storage_reset_retry", "a": ["stornvme|129", "storahci|129"], "b": ["disk|7", "disk|51", "disk|153"], "windowSec": 120 },
+        { "id": "restart_after_graphics", "a": ["nvlddmkm|153", "Display|4101"], "b": ["Microsoft-Windows-Kernel-Power|41", "EventLog|6008"], "windowSec": 300, "directed": true },
+        { "id": "restart_after_storage", "a": ["disk|7", "disk|51", "disk|153", "stornvme|129", "storahci|129"], "b": ["Microsoft-Windows-Kernel-Power|41", "EventLog|6008"], "windowSec": 300, "directed": true }
+      ]
+    },
+    "thresholds": {
+      "cpuHighPct": 85,
+      "cpuSustainedShare": 0.5,
+      "procSustainedActiveShare": 0.6,
+      "procSustainedCores": 0.5,
+      "memLowAvailablePct": 10,
+      "memLowAvailableMB": 1024,
+      "pagesInputHighPerSec": 100,
+      "commitHighPct": 90,
+      "diskLatencyHighMs": 50,
+      "diskLatencyWarnMs": 20,
+      "diskQueueBusy": 1,
+      "diskQueuePeak": 4,
+      "bootSlowMainPathMs": 60000,
+      "bootWarnMainPathMs": 40000,
+      "crashRecurringDays": 2,
+      "procCommitHighMB": 4096,
+      "procCommitHiddenWsRatio": 0.35,
+      "procIoNotableMBps": 5,
+      "eventRecurringDays": 2,
+      "portUsageHighPct": 80,
+      "portUsageElevatedPct": 50
+    },
+    "relevance": {
+      "slow":    { "cpu": "high", "memory": "high", "storage": "high", "storage_history": "medium", "boot": "low", "stability": "medium", "graphics": "medium", "network": "low", "incident": "high" },
+      "boot":    { "cpu": "low", "memory": "low", "storage": "medium", "storage_history": "medium", "boot": "high", "stability": "medium", "graphics": "low", "network": "low", "incident": "high" },
+      "crash":   { "cpu": "low", "memory": "low", "storage": "low", "storage_history": "high", "boot": "low", "stability": "high", "graphics": "high", "network": "medium", "incident": "high" },
+      "general": { "cpu": "medium", "memory": "medium", "storage": "medium", "storage_history": "high", "boot": "medium", "stability": "high", "graphics": "medium", "network": "medium", "incident": "high" }
+    }
+  },
   "scoringNotes": [
     "Score = 100 x (sum of eligible weights - deductions) / sum of eligible weights. A category is eligible only when it has at least one base rule with penalty > 0 AND at least one of its base checks produced evidence (pass or finding); otherwise it is reported as excluded and contributes no points.",
     "A proven critical storage failure (Windows HealthStatus 'Unhealthy' or SMART PredictFailure=true, base rules only) sets riskLevel 'critical' and caps the score at riskGates.critical.scoreCap. riskLevel is independent from score status (availability) and from confidence (data quality).",

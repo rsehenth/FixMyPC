@@ -14,22 +14,22 @@
                    {
                        "key":  "banner",
                        "source":  "assets/report/fixmypc-report-banner-v2.png",
-                       "sourceSha256":  "70b2b0a1dce3d7d7eefc454861c2d8bb68078a3edf46c9389a4ff67107a27663",
+                       "sourceSha256":  "45c0010109da7b750d78c0e533f7f0807bb90ea40741e37e796d5942e8385608",
                        "windowsLogo":  false,
                        "thirdPartyMarks":  false,
                        "approvalChecksOrShields":  false,
                        "fixedHealthGauges":  false,
-                       "note":  "Generic monitors, magnifier, charts and circuit lines in blue/cyan/teal; tagline text only names the product. No logo, shield, check or gauge."
+                       "note":  "Generic monitors, magnifier, charts and circuit lines in blue/cyan/teal. No logo, shield, check or gauge. 2026-11-26 (Claude Opus 5.5): subtitle redrawn as 'PC Diagnostic & Audit Skill' (previously 'Windows Diagnostic & Audit Skill', source 70b2b0a1...7a27663); only that text line changed. See docs/artwork-provenance.md."
                    },
                    {
                        "key":  "logo",
                        "source":  "assets/branding/fixmypc-logo-v2.png",
-                       "sourceSha256":  "ce2ba790104d18a58e55996e49ce902fbee5cad26549439c742e9b435819b351",
+                       "sourceSha256":  "659e9d276783c6396148b7b39bc9edc56574abefc5c11bbabd368869533bf434",
                        "windowsLogo":  false,
                        "thirdPartyMarks":  false,
                        "approvalChecksOrShields":  false,
                        "fixedHealthGauges":  false,
-                       "note":  "Monitor with abstract panels and magnifier plus wordmark. No third-party mark, no approval sign."
+                       "note":  "Monitor with abstract panels and magnifier plus wordmark. No third-party mark, no approval sign. 2026-11-26 (Claude Opus 5.5): subtitle redrawn as 'PC Diagnostic & Audit Skill' (previously 'Windows Diagnostic & Audit Skill', source ce2ba790...435819b351); only that text line changed. See docs/artwork-provenance.md."
                    },
                    {
                        "key":  "icon",

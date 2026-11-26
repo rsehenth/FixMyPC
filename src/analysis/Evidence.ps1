@@ -158,7 +158,7 @@ function Merge-FmpDiagnostics {
     $diag['schemaVersion'] = $script:FmpSchemaVersion
     $diag['run'] = [ordered]@{
         id          = $RunMeta.Id
-        tool        = 'FIX MY PC: Windows Diagnostic & Audit Skill'
+        tool        = 'FIX MY PC: PC Diagnostic & Audit Skill'
         toolVersion = $script:FmpToolVersion
         mode        = $RunMeta.Mode
         language    = $RunMeta.Language

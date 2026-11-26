@@ -167,6 +167,10 @@ function ConvertTo-FmpSanitizedDiagnostic {
             return Hide-FmpSensitiveValue -Value '' -FieldName $field
         }
 
+        # Pipeline output (Sort-Object, ForEach-Object) is wrapped in a PSObject, which is also
+        # -is [pscustomobject]. Without this guard, numbers such as min/max/p90 become an empty object.
+        if ($node -is [System.ValueType]) { return $node }
+
         if ($node -is [System.Collections.IDictionary] -or $node -is [pscustomobject]) {
             $entries = Get-FmpEntries $node
             $entryLuids = @()

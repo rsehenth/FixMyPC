@@ -10,7 +10,7 @@
 fixmypc/
 ├── SKILL.md                        # contrato do agente (frontmatter + corpo)
 ├── README.md / README.pt-BR.md     # documentação de usuário (EN/PT-BR)
-├── CHANGELOG.md · LICENSE (PolyForm Noncommercial 1.0.0)
+├── CHANGELOG.md · LICENSE (MIT)
 ├── IMPLEMENTATION-REPORT.md        # este relatório
 ├── fixmypc.ps1                     # único ponto de entrada auditado
 ├── src/

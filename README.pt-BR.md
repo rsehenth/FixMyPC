@@ -2,18 +2,18 @@
 
 [English](README.md) · **Português (Brasil)**
 
-> **Status: Em desenvolvimento — Versão funcional de prévia.**
-> Gratuito para uso não comercial sob a [PolyForm Noncommercial License 1.0.0](LICENSE).
-> Código disponível (*source-available*), não é código aberto aprovado pela OSI. Nenhuma versão pública foi aprovada ainda.
+> **Status: FIX MY PC 2.0 — aprovado para uso pessoal supervisionado, com ressalvas.** Não aprovado para distribuição pública.
+> Licenciado sob a [Licença MIT](LICENSE). Copyright (c) 2026 Lucas Sehenth.
+> Nenhuma versão pública foi aprovada ainda.
 
 O FIX MY PC é uma ferramenta de diagnóstico para Windows, somente leitura. Ela
 executa verificações locais reais, aplica um conjunto determinístico de regras e
 gera um relatório HTML offline e um arquivo JSON sanitizado. Nunca repara, limpa
 nem altera o computador.
 
-A ferramenta já funciona para uso pessoal supervisionado no **Modo Simples**.
-Ainda está em desenvolvimento, em validação de compatibilidade e em preparação
-para distribuição; trate cada resultado como apoio à revisão e espere arestas.
+O FIX MY PC 2.0 acrescenta diagnóstico avançado do Windows no **Modo Completo**.
+As auditorias `standard` e `deep` foram aprovadas com ressalvas em uma VM
+Windows 11 supervisionada. O pacote pessoal está preparado para uso supervisionado.
 
 ## Conteúdo
 
@@ -54,11 +54,11 @@ auditoria de segurança nem substituto de um diagnóstico profissional.
 
 | Item | Situação |
 |---|---|
-| Estágio | **Em desenvolvimento — Versão funcional de prévia** (versão 0.1.0) |
+| Estágio | **FIX MY PC 2.0 — aprovado para uso pessoal supervisionado, com ressalvas** (versão da ferramenta 0.1.0). Fases A, B e C concluídas |
 | Modo Simples | Validado em uma execução supervisionada no Windows 11 Enterprise com Windows PowerShell 5.1 |
-| Modo Completo | Implementado e coberto por testes sintéticos. **Ainda não validado em hardware real** |
+| Modo Completo (2.0) | Auditorias reais `standard` e `deep` concluídas em VM Windows 11 supervisionada com permissões de usuário comum. Veredito **aprovado com ressalvas**. A validação em hardware físico está pendente |
 | Windows 10, PowerShell 7 | Não validados e não suportados |
-| Versão pública | **Não aprovada.** Pendências: revisão jurídica, validação em hardware e em máquina virtual, checksums publicados |
+| Distribuição pública | **Ainda não publicada.** A revisão de artes e nome (`LEGAL-REVIEW`) foi encerrada pelo proprietário; não foi uma revisão jurídica profissional. Também estão pendentes a validação do Modo Completo em hardware físico e os checksums de um futuro pacote público |
 
 As pendências de lançamento estão em
 [`distribution-manifest.json`](distribution-manifest.json),
@@ -71,10 +71,10 @@ e [`NOTICE.md`](NOTICE.md).
   o código-fonte contra listas permitidas de comandos, parâmetros e membros antes
   de carregar os módulos da aplicação. Sem reparos, sem elevação, sem acesso à
   rede.
-- **Consentimento explícito antes de qualquer coleta**, com a pasta de saída e a
-  política exibidas antes.
-- **Seis coletores** (sistema, eventos, inicialização, desempenho, armazenamento
-  e avançado) e um **motor determinístico de 22 regras**.
+- **Consentimento explícito obrigatório a cada execução real.** A ferramenta
+  exibe a política somente leitura e a pasta de saída antes de pedir confirmação.
+- **Motor de diagnóstico determinístico com 22 regras de base** e auditoria
+  completa por sintoma, com janelas de observação e investigação adaptativa.
 - **Pontuação de 0 a 100 explicável**, com **risco** diagnóstico, **cobertura** e
   **confiança** informados separadamente.
 - **Sete estados de verificação** (`pass`, `finding`, `unknown`, `unsupported`,
@@ -96,8 +96,9 @@ Consentimento  →  Coleta somente leitura  →  Análise determinística  →  
 1. **Consentimento.** A ferramenta explica a política de somente leitura, mostra
    onde os arquivos serão gravados e pede sua confirmação.
 2. **Coleta.** Os coletores leem informações locais do Windows (CIM, logs de
-   eventos, registro, tarefas agendadas e fontes semelhantes). Nada é instalado,
-   alterado ou enviado.
+   eventos, registro, tarefas agendadas e fontes semelhantes). No Modo Completo,
+   o sintoma, as evidências e a profundidade autorizada determinam as verificações
+   passivas adicionais. Nada é instalado, alterado ou enviado.
 3. **Análise.** As regras de [`rules/rules.json`](rules/rules.json) transformam a
    evidência em achados, pontuação, nível de risco, cobertura e confiança. Esta
    etapa não usa IA nem rede.
@@ -110,10 +111,11 @@ Consentimento  →  Coleta somente leitura  →  Análise determinística  →  
 |---|---|
 | Sistema | Informações do sistema operacional e do hardware, tempo ligado, informações de ciclo de vida de um retrato embutido |
 | Eventos | Logs System e Application (Erro e Crítico, últimos 7 dias): eventos críticos recorrentes, concentração de erros, erros de hardware WHEA, desligamentos inesperados, bug checks |
-| Desempenho | Amostras curtas de CPU, memória e memória comprometida, coletadas uma vez durante a execução |
+| Desempenho | Amostras curtas de CPU, memória e memória comprometida. No Modo Completo, há uma janela de observação de CPU, memória, discos e processos |
 | Inicialização | Entradas Run/RunOnce, pastas Inicializar, tarefas agendadas de logon e serviços automáticos, listados e nunca executados |
 | Armazenamento | Espaço livre, saúde do disco informada pelo Windows, status de previsão de falha SMART, eventos de erro de armazenamento |
 | Avançado (somente Modo Completo) | Dispositivos com código de problema, status do Windows Defender, aplicativos instalados a partir de fontes passivas do registro, indicadores de reinício pendente, recência de hotfixes, eventos de Segurança quando acessíveis |
+| Investigações adaptativas (somente Modo Completo) | Eventos do driver gráfico, uso de GPU e VRAM, relatórios de falha do Windows sem duplicatas, uso de portas TCP, serviços do `svchost`, associação de eventos a discos e confiabilidade do armazenamento quando houver gatilho, autorização e suporte |
 
 As 22 regras, seus limiares e penalidades estão documentados em
 [`docs/methodology.md`](docs/methodology.md), que está em português.
@@ -153,13 +155,14 @@ As 22 regras, seus limiares e penalidades estão documentados em
 
 - **Execução local.** O script coleta e analisa no seu computador. Não tem acesso
   à rede por projeto e não envia relatórios a lugar nenhum.
-- **Política somente leitura.** As únicas gravações são os arquivos do relatório
-  dentro da pasta de saída que você autorizar. Veja
-  [`docs/readonly-policy.md`](docs/readonly-policy.md) para as camadas de
+- **Política somente leitura.** As gravações ficam na pasta de saída autorizada,
+  que contém os relatórios e, nas execuções reais, `run-reservation.json`.
+  Veja [`docs/readonly-policy.md`](docs/readonly-policy.md) para as camadas de
   aplicação da política e seus limites.
-- **Consentimento explícito.** A coleta não começa sem ele. O parâmetro
-  `-AcceptReadOnlyPolicy` é uma declaração de quem escreve a linha de comando;
-  não prova que um humano concordou.
+- **Consentimento explícito.** Cada execução real exige confirmação no terminal
+  ou aprovação explícita do comando exato exibido por `-Plan`. A coleta não
+  interativa exige `-AcceptReadOnlyPolicy` e o `-ConsentToken` correspondente,
+  de uso único.
 - **Pasta de saída restrita.** A ferramenta cria a pasta com permissões limitadas
   à sua conta e ao SYSTEM e sem herança da pasta pai. Recusa pastas existentes,
   pontos de reanálise (*reparse points*) e caminhos de rede, e nunca altera as
@@ -194,9 +197,9 @@ Windows 10 e PowerShell 7 (`pwsh`) não foram validados e não são suportados.
 
 ## Primeiros passos
 
-Ainda não há versão pública nem download. Se você recebeu uma cópia do
-proprietário do projeto, extraia-a em uma pasta sob seu controle e execute os
-comandos abaixo a partir dela, no Windows PowerShell 5.1.
+O pacote de distribuição pública ainda não foi aprovado. Se você recebeu uma
+cópia do proprietário do projeto, extraia-a em uma pasta sob seu controle e
+execute os comandos abaixo a partir dela, no Windows PowerShell 5.1.
 
 Execução interativa (explica a política e pergunta idioma, modo e consentimento):
 
@@ -204,15 +207,19 @@ Execução interativa (explica a política e pergunta idioma, modo e consentimen
 powershell -NoProfile -File .\fixmypc.ps1
 ```
 
-Execução não interativa. `-OutDir` deve ser um caminho local absoluto que **ainda
-não existe**; a ferramenta o cria. Adicione `-AcceptReadOnlyPolicy` somente se você
-mesmo confirmar a política de somente leitura para esta execução:
+Para uma execução não interativa, gere primeiro um plano. `-OutDir` deve ser
+um caminho local absoluto para uma pasta nova. A ferramenta a cria quando
+a execução autorizada começa.
 
 ```powershell
-powershell -NoProfile -File .\fixmypc.ps1 `
+powershell -NoProfile -NonInteractive -File .\fixmypc.ps1 -Plan `
   -Mode simple -Language pt-BR `
-  -OutDir "$env:LOCALAPPDATA\FixMyPC\auditoria-1" -AcceptReadOnlyPolicy
+  -OutDir "$env:LOCALAPPDATA\FixMyPC\auditoria-1"
 ```
+
+Confira a política e o escopo do plano. Após o consentimento explícito para
+esta execução, rode o comando exato emitido por `-Plan`, que inclui
+`-AcceptReadOnlyPolicy` e o `-ConsentToken` correspondente.
 
 Sem `-OutDir`, o relatório vai para uma nova pasta em `%LOCALAPPDATA%\FixMyPC`.
 
@@ -245,11 +252,40 @@ deles, as pastas de relatório que você criou. Nada mais é instalado.
 
 | Modo | O que executa | Validação |
 |---|---|---|
-| `simple` | Sistema, eventos, inicialização, desempenho, armazenamento | Validado em uma execução supervisionada no Windows 11 Enterprise, usuário comum, PowerShell 5.1 |
-| `full` | Modo Simples mais dispositivos, Defender, aplicativos instalados, indicadores de reinício pendente, recência de hotfixes e eventos de Segurança quando acessíveis | Implementado e testado somente com dados sintéticos. Não validado em hardware real |
+| `simple` (Auditoria Rápida) | Sistema, eventos, inicialização, uma amostra de desempenho de cerca de 4 s, armazenamento | Validado em uma execução supervisionada no Windows 11 Enterprise, usuário comum, PowerShell 5.1 (antes da 2.0) |
+| `full` (Auditoria Completa) | Auditoria Rápida mais uma janela de observação de CPU, memória, discos e processos (60 s por padrão para lentidão), histórico de inicialização do Windows, eventos de estabilidade (30 dias para travamentos), dispositivos, Defender, aplicativos instalados, indicadores de reinício pendente, recência de hotfixes e eventos de Segurança quando acessíveis | Aprovado com ressalvas após execuções supervisionadas de `standard` e `deep` em VM Windows 11. A validação em hardware físico está pendente |
 
-"Implementado" significa que o código existe e passa nos testes sintéticos.
-"Validado" significa que foi executado em uma máquina real sob supervisão.
+### Investigação orientada por sintoma (2.0)
+
+A Auditoria Completa pergunta qual problema investigar (`-Symptom boot|slow|crash|general`). A resposta muda a
+janela de observação, o histórico de eventos lido e a ordem dos resultados. Uma camada determinística
+(`src/analysis/Diagnosis.ps1`) responde perguntas fixas - a CPU ficou saturada, a memória ficou pressionada com
+paginação, algum disco ficou ocupado ou lento para responder, o Windows registrou inicializações degradadas, os
+reinícios inesperados se repetem - e registra, para cada resposta, os valores, a origem, a janela, a relevância para
+o sintoma, a confiança, as limitações e as explicações alternativas. Ela nunca afirma uma causa e nunca transforma
+falta de dados em "saudável". O relatório abre com o resultado em linguagem simples (até três achados principais,
+cada um com *o que observamos*, *por que isso importa* e *o que você pode fazer*); a pontuação de 0 a 100 vem depois,
+como dado secundário. Veja [`docs/methodology.md`](docs/methodology.md).
+
+**Fase A.** Distingue Private Bytes (memória privada comprometida), Working Set e Working Set privado. Mede o I/O
+recente por processo, agrupa o consumo por executável e lê um catálogo fechado de eventos do Sistema por provedor
+e ID. A linha do tempo pode usar `-IncidentAt` e `-IncidentToleranceMinutes` para sinalizar evidências próximas
+ao incidente para revisão.
+
+**Fase B.** Analisa eventos do driver gráfico e o uso de GPU e VRAM, remove duplicatas de eventos do Windows Error
+Reporting, conta conexões TCP por estado e processo em relação à faixa dinâmica de portas, lista serviços em
+processos `svchost` selecionados e associa eventos recentes de armazenamento aos discos atuais quando possível.
+As verificações de rede usam fontes locais e omitem endereços e números de porta das conexões.
+
+**Fase C.** Seleciona verificações complementares de um catálogo fechado com base no sintoma e nas evidências
+iniciais. Cada profundidade tem orçamento de tempo e critérios de parada. `standard` é o padrão. Com consentimento
+para `-Depth deep`, a auditoria pode consultar mais dias de histórico e, quando houver gatilho, verificar a
+confiabilidade do armazenamento ou coletar uma segunda amostra para confirmar um pico. O relatório indica quais
+hipóteses as evidências sustentam e quais verificações foram inconclusivas ou ficaram indisponíveis.
+
+A observação usa classes CIM de desempenho brutas (independentes do idioma do Windows) e calcula taxas por diferença;
+não grava, não faz benchmark e não estressa o disco. O log de desempenho de inicialização do Windows costuma exigir
+privilégios de administrador: sem eles o relatório informa "não verificado" e a ferramenta não pede elevação.
 
 ## Uso como skill de agente
 
@@ -260,12 +296,23 @@ Codex: [`adapters/claude/README.md`](adapters/claude/README.md),
 proíbe alterar o computador, inventar comandos de coleta ou contornar o
 consentimento.
 
+Invocação: `/fixmypc audit` no Claude Code; `$fixmypc` (mais `audit` ou uma descrição) no Codex. O agente dá as
+boas-vindas, oferece a Auditoria Rápida ou Completa, pergunta o sintoma e executa `fixmypc.ps1 -Plan ...`, que não
+coleta nada e imprime o pedido de autorização: modo, idioma, objetivo, dados lidos, duração estimada, pasta de saída,
+processamento pela IA, "nenhum reparo" e o comando exato com um `-ConsentToken` de uso único. A pessoa responde uma
+vez, no chat; o agente executa exatamente esse comando.
+
 **`-AcceptReadOnlyPolicy` não prova que um humano autorizou a execução.** Um
-agente pode adicioná-lo sem perguntar. O consentimento deve ser pedido à pessoa a
-cada execução real (comando exato, modo, idioma e pasta de saída), nunca
-reaproveitado e nunca guardado em script, hook ou permissão permanente. Veja
-[Privacidade e segurança](#privacidade-e-segurança) para saber o que o serviço de
-IA do agente recebe.
+agente pode adicioná-lo sem perguntar. Uma execução real não interativa exige o `-ConsentToken` emitido pelo `-Plan`
+para aquela execução. O token vincula o escopo, que inclui modo, sintoma, idioma, janela de observação,
+parâmetros do incidente, profundidade e pasta de saída, por 30 minutos. Um `run-reservation.json` exclusivo consome
+a autorização antes da coleta e bloqueia usos repetidos ou simultâneos. O consentimento deve ser pedido à pessoa a
+cada execução real, nunca reaproveitado e nunca guardado em script, hook ou permissão permanente.
+Veja [Privacidade e segurança](#privacidade-e-segurança) para saber o que o serviço de IA do agente recebe.
+
+*Migração:* instruções de agente escritas para a 0.1.0 (`-AcceptReadOnlyPolicy` sozinho) agora terminam com código
+3. Use `-Plan`, mostre a saída e execute o comando impresso após uma resposta explícita. Execuções interativas no
+terminal e com fixtures não mudaram.
 
 ## Limitações
 
@@ -277,22 +324,32 @@ IA do agente recebe.
   a confiança; não reduzem a pontuação.
 - **Consultas ao Windows podem demorar ou travar.** As consultas a logs de eventos
   e a tarefas agendadas não têm tempo limite embutido. Se uma execução travar,
-  pressione Ctrl+C; os arquivos do relatório só são gravados na fase final.
+  pressione Ctrl+C; os arquivos do relatório só são gravados na fase final (uma
+  execução real deixa apenas o seu `run-reservation.json`, e a autorização já foi usada).
 - **Um relatório sem achados não é garantia.** As regras são conservadoras e
   amostram um instante; a ausência de achados não prova a ausência de problemas.
 - **Compatibilidade limitada.** Só o ambiente descrito em
-  [Requisitos](#requisitos) foi exercitado, e apenas o Modo Simples em hardware
-  real.
+  [Requisitos](#requisitos) foi exercitado. O Modo Completo só foi exercitado em VM supervisionada. Contadores
+  de GPU e VRAM, esgotamento real de portas TCP e rotinas que exigem administrador
+  seguem sem verificação. A correlação por horário só foi coberta com dados sintéticos.
 - **Lacunas menores conhecidas:** destinos de atalhos (`.lnk`) de inicialização
   não são resolvidos; a verificação Authenticode não é coletada; as datas de ciclo
   de vida do Windows vêm de um retrato embutido que pode ficar desatualizado;
   varreduras pendentes do Windows Update deliberadamente não são executadas.
-- **Ainda em desenvolvimento.** Interfaces, regras e layout do relatório podem
-  mudar.
+- **Calibração de limiares pendente.** As medições da VM foram feitas em
+  hardware virtual. Os limiares de diagnóstico são pontos iniciais de revisão.
 
 ## Desenvolvimento e validação
 
-Últimos resultados registrados (Etapa 11, sintéticos e offline):
+**2.0 (resultados anteriores):** a regressão consolidada das Fases A, B e C registrou **1.481 asserções sintéticas e nenhuma falha**.
+A correção dos nomes de serviço do `svchost` acrescentou duas asserções de regressão (`PhaseBC.Tests.ps1`, 213 asserções, nenhuma falha).
+As auditorias `standard` e `deep` em VM Windows 11 supervisionada foram **aprovadas com ressalvas para uso pessoal**.
+Mantiveram o consentimento obrigatório por execução e a política somente leitura. Ainda faltam validar provedores e
+contadores de GPU dedicada (NVIDIA, AMD, Intel), execução como administrador, correlação por `-IncidentAt` com eventos
+reais e esgotamento de portas TCP. Também faltam medir o custo de CPU e memória da ferramenta, calibrar os limiares e
+confirmar os nomes de serviço em um relatório real após a correção.
+
+Resultados anteriores registrados (Etapa 11, antes da 2.0, sintéticos e offline):
 
 | Suíte | Resultado |
 |---|---|
@@ -302,13 +359,12 @@ IA do agente recebe.
 | `-ValidateOnly` | aprovado |
 | Verificação do manifesto de distribuição | aprovada |
 
-Essas suítes usam fixtures sintéticas e mocks isolados. Elas verificam o código e
-o relatório, **não** o comportamento em hardware real, e não são uma homologação
-de hardware. A única evidência em hardware real até agora é uma execução
-supervisionada do Modo Simples em uma única máquina com Windows 11 Enterprise. O
-Modo Completo, outras edições e versões do Windows, a homologação em máquina
-virtual e as políticas corporativas (AppLocker, WDAC, Constrained Language Mode)
-continuam pendentes; veja [`docs/homologation-plan.md`](docs/homologation-plan.md).
+Essas suítes usam fixtures sintéticas e mocks isolados para verificar o código e
+o relatório. A evidência em hardware físico vem de uma execução supervisionada
+do Modo Simples no Windows 11 Enterprise. A evidência do Modo Completo vem da VM.
+Continuam pendentes a validação do Modo Completo em hardware físico, de outras
+edições e versões do Windows e de políticas corporativas (AppLocker, WDAC,
+Constrained Language Mode). Veja [`docs/homologation-plan.md`](docs/homologation-plan.md).
 
 ```powershell
 powershell -NoProfile -File .\tests\Run.Tests.ps1
@@ -322,9 +378,9 @@ powershell -NoProfile -File .\tools\Test-DistributionManifest.ps1
 As duas imagens mostram um **relatório de demonstração sintético**: todos os
 valores são fictícios e nenhum computador real é descrito.
 
-![Relatório de demonstração sintético com o botão Imprimir / Salvar em PDF, em português](docs/screenshots/stage10-print-btn-ptBR-1440.png)
+![Relatório de demonstração sintético com o botão Imprimir / Salvar em PDF, em português](docs/screenshots/readme-print-ptBR-1440.png)
 
-![Relatório de demonstração sintético, em inglês, com um achado crítico de armazenamento](docs/screenshots/stage71-final-critical-en-1440.png)
+![Relatório de demonstração sintético, em inglês, com um achado crítico de armazenamento](docs/screenshots/readme-critical-en-1440.png)
 
 Mais exemplos sintéticos estão em [`samples/`](samples/).
 
@@ -344,19 +400,16 @@ inglês.
 
 ## Licença
 
-O FIX MY PC é licenciado sob a
-[PolyForm Noncommercial License 1.0.0](LICENSE). Em resumo: você pode usar,
-estudar, modificar e redistribuir para fins não comerciais, sem custo. O uso
-comercial não é concedido e exige autorização escrita específica do proprietário
-do projeto. O texto em [`LICENSE`](LICENSE) é a única declaração vinculante.
+O FIX MY PC é licenciado sob a [Licença MIT](LICENSE) (SPDX: `MIT`).
+Copyright (c) 2026 Lucas Sehenth. O texto em [`LICENSE`](LICENSE) é a única
+declaração vinculante.
 
-É uma licença de código disponível (*source-available*); **não** é uma licença de
-código aberto aprovada pela OSI.
-
-A licença cobre o software. O nome FIX MY PC, o logotipo e a arte v2 são tratados
-à parte: sua titularidade ainda não está registrada e o nome do produto aguarda
-revisão jurídica. Veja [`NOTICE.md`](NOTICE.md). A publicação pública continua
-bloqueada até que esses itens sejam resolvidos.
+A arte v2 foi gerada com o ChatGPT para este projeto. Ela é disponibilizada sob
+a mesma Licença MIT, na extensão dos direitos que o titular detém. Imagens
+geradas por IA podem não ter nenhum direito autoral, por isso nenhum direito
+exclusivo é reivindicado. A Licença MIT não concede direitos de marca: o nome
+FIX MY PC não é licenciado. Veja [`NOTICE.md`](NOTICE.md) e
+[`docs/artwork-provenance.md`](docs/artwork-provenance.md).
 
 ## Marcas e não afiliação
 
@@ -371,4 +424,4 @@ exigem interpretação adequada: use a verificação humana recomendada em cada 
 e consulte um técnico qualificado para decisões sobre seu hardware, seus dados ou
 sua segurança. A pontuação é um apoio à revisão, não um diagnóstico de hardware,
 uma garantia nem uma certificação de segurança. O software é fornecido nos termos
-da licença, incluindo sua cláusula "No Liability" (sem responsabilidade).
+da Licença MIT, "no estado em que se encontra" e sem garantia.

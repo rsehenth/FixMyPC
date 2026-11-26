@@ -207,8 +207,127 @@ function ConvertTo-FmpSerializable {
 }
 
 function Test-FmpCollectionConsent {
-    param([bool]$Explicit, [bool]$Interactive, [string]$Answer)
-    return ($Explicit -or ($Interactive -and $Answer -match '^\s*(s|sim|y|yes)\s*$'))
+    # A real collection needs either a typed "yes" in an interactive terminal, or -AcceptReadOnlyPolicy TOGETHER with a
+    # consent token that matches this exact run (Test-FmpConsentToken). The flag alone is a caller's declaration only.
+    param([bool]$Explicit, [bool]$Interactive, [string]$Answer, [string]$TokenState = 'missing')
+    return (($Explicit -and $TokenState -ceq 'valid') -or ($Interactive -and $Answer -match '^\s*(s|sim|y|yes)\s*$'))
+}
+
+# ---------------------------------------------------------------
+# Consent scope token (agent runs). `fixmypc.ps1 -Plan` prints the consent request and the exact command with a
+# token bound to mode, symptom, language, observation, output folder and internal-JSON choice, issued now.
+# It is NOT a secret and does not prove that a human answered (anyone with the same shell can run -Plan). What it
+# guarantees: the command the person approved is the one that runs (any changed parameter -> mismatch), an old
+# approval expires (30 min), and it is consumed once: the output folder is in the scope, and before any collector a
+# real run must win New-FmpRunReservation in that folder (exclusive file creation). The folder then stays, so a
+# finished, failed, interrupted or concurrent run with the same token is refused.
+# ---------------------------------------------------------------
+function Get-FmpConsentScope {
+    param([string]$Mode, [string]$Symptom, [string]$Language, [int]$ObserveSeconds, [string]$DuringProblem,
+          [bool]$IncludeInternal, [string]$OutDir, [string]$Incident = '', [string]$Depth = '')
+    $scope = 'fmpc1|' + $Mode + '|' + $Symptom + '|' + $Language + '|' + $ObserveSeconds + '|' + $DuringProblem + '|' + $IncludeInternal + '|' + $OutDir
+    # Appended only when present, after the folder ("|" cannot occur in a Windows path), so runs without it keep their scope.
+    if ($Incident -ne '') { $scope += '|incident=' + $Incident }
+    # Standard is the default of a Full audit; deep widens what is read, so it must be approved explicitly.
+    if ($Depth -ceq 'deep') { $scope += '|depth=deep' }
+    return $scope
+}
+
+function Get-FmpShortRef {
+    # One-way short reference, so a report can be counted once without keeping its Windows identifier.
+    param([string]$Value)
+    return Get-FmpConsentDigest -Scope 'fmpref' -Stamp $Value
+}
+
+function New-FmpIncidentFailure {
+    param([string]$Reason)
+    return @{ ok = $false; reason = $Reason; anchor = $null; scope = '' }
+}
+
+function ConvertTo-FmpIncidentAnchor {
+    # Closed grammar, no natural language (the agent turns "yesterday night" into a time plus a tolerance):
+    # '' or unknown | during-run | yyyy-MM-dd[T ]HH:mm[:ss][Z|+hh:mm|-hh:mm]. Without an offset the time is local to this PC.
+    # Returns @{ ok; reason; anchor; scope }. reason: malformed | tolerance | nonexistent_local | future | too_old.
+    param([string]$Value, [int]$ToleranceMinutes = 30, [object]$NowUtc = $null, [object]$Zone = $null, [int]$MaxAgeDays = 60)
+    if ($ToleranceMinutes -lt 1 -or $ToleranceMinutes -gt 720) { return (New-FmpIncidentFailure 'tolerance') }
+    $v = ([string]$Value).Trim()
+    if ($v -eq '' -or $v -ceq 'unknown') { return @{ ok = $true; reason = ''; anchor = [ordered]@{ kind = 'unknown' }; scope = '' } }
+    if ($v -ceq 'during-run') { return @{ ok = $true; reason = ''; anchor = [ordered]@{ kind = 'during_run' }; scope = 'during-run' } }
+    if ($v -cnotmatch '^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(:\d{2})?(Z|[+-]\d{2}:\d{2})?$') { return (New-FmpIncidentFailure 'malformed') }
+    $seconds = ':00'
+    if ($null -ne $Matches[3]) { $seconds = [string]$Matches[3] }
+    $suffix = ''
+    if ($null -ne $Matches[4]) { $suffix = [string]$Matches[4] }
+    $text = $Matches[1] + 'T' + $Matches[2] + $seconds
+    $local = [datetime]0
+    if (-not [DateTime]::TryParseExact($text, 'yyyy-MM-ddTHH:mm:ss', [System.Globalization.CultureInfo]::InvariantCulture,
+            [System.Globalization.DateTimeStyles]::RoundtripKind, [ref]$local)) { return (New-FmpIncidentFailure 'malformed') }
+    $ambiguous = $false
+    $effective = $ToleranceMinutes
+    if ($suffix -eq '') {
+        if ($null -eq $Zone) { $Zone = [TimeZoneInfo]::Local }
+        if ($Zone.IsInvalidTime($local)) { return (New-FmpIncidentFailure 'nonexistent_local') }
+        # A repeated hour at the end of DST: the instant is one of two, one hour apart, so the search covers both.
+        if ($Zone.IsAmbiguousTime($local)) { $ambiguous = $true; $effective += 60 }
+        $utc = $local.ToUniversalTime()
+    }
+    elseif ($suffix -ceq 'Z') { $utc = Get-FmpParsedDate ($text + 'Z') }
+    else {
+        $hh = [int]$suffix.Substring(1, 2); $mm = [int]$suffix.Substring(4, 2)
+        if ($hh -gt 14 -or $mm -gt 59 -or ($hh -eq 14 -and $mm -ne 0)) { return (New-FmpIncidentFailure 'malformed') }
+        $offsetMin = ($hh * 60 + $mm)
+        if ($suffix.StartsWith('-')) { $offsetMin = -$offsetMin }
+        $utc = Get-FmpParsedDate ($local.AddDays(-$offsetMin / 1440).ToString('yyyy-MM-ddTHH:mm:ss', [System.Globalization.CultureInfo]::InvariantCulture) + 'Z')
+    }
+    if ($null -eq $utc) { return (New-FmpIncidentFailure 'malformed') }
+    $utc = $utc.ToUniversalTime()
+    if ($null -ne $NowUtc) {
+        $ageHours = (([datetime]$NowUtc).ToUniversalTime() - $utc).TotalHours
+        if ($ageHours -lt (-5 / 60)) { return (New-FmpIncidentFailure 'future') }
+        if ($ageHours -gt ($MaxAgeDays * 24)) { return (New-FmpIncidentFailure 'too_old') }
+    }
+    $normalized = $text + $suffix
+    return @{
+        ok = $true; reason = ''; scope = ($normalized + '~' + $ToleranceMinutes)
+        anchor = [ordered]@{
+            kind = 'at'; input = $normalized
+            atUtc = $utc.ToString('yyyy-MM-ddTHH:mm:ssZ', [System.Globalization.CultureInfo]::InvariantCulture)
+            toleranceMinutes = $ToleranceMinutes; effectiveToleranceMinutes = $effective
+            offsetKnown = ($suffix -ne ''); ambiguousLocal = $ambiguous
+        }
+    }
+}
+
+function Get-FmpConsentDigest {
+    param([string]$Scope, [string]$Stamp)
+    $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($Scope + '|' + $Stamp)
+    $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+    $hex = ''
+    foreach ($b in $hash[0..7]) { $hex += $b.ToString('x2') }
+    return $hex
+}
+
+function New-FmpConsentToken {
+    param([Parameter(Mandatory)][string]$Scope, [Parameter(Mandatory)][datetime]$IssuedUtc)
+    $stamp = $IssuedUtc.ToString('yyyyMMddHHmmss', [System.Globalization.CultureInfo]::InvariantCulture)
+    return 'fmpc1-' + $stamp + '-' + (Get-FmpConsentDigest -Scope $Scope -Stamp $stamp)
+}
+
+function Test-FmpConsentToken {
+    # Returns valid | missing | malformed | scope_mismatch | expired | future.
+    param([string]$Token, [Parameter(Mandatory)][string]$Scope, [Parameter(Mandatory)][datetime]$NowUtc, [int]$MaxAgeMinutes = 30)
+    if ([string]::IsNullOrWhiteSpace($Token)) { return 'missing' }
+    if ($Token -cnotmatch '^fmpc1-(\d{14})-([0-9a-f]{16})$') { return 'malformed' }
+    $stamp = $Matches[1]
+    $digest = $Matches[2]
+    $issued = [datetime]0
+    if (-not [DateTime]::TryParseExact($stamp, 'yyyyMMddHHmmss', [System.Globalization.CultureInfo]::InvariantCulture,
+            [System.Globalization.DateTimeStyles]::RoundtripKind, [ref]$issued)) { return 'malformed' }
+    if ((Get-FmpConsentDigest -Scope $Scope -Stamp $stamp) -cne $digest) { return 'scope_mismatch' }
+    $ageMinutes = ($NowUtc - $issued).TotalMinutes
+    if ($ageMinutes -lt -2) { return 'future' }
+    if ($ageMinutes -gt $MaxAgeMinutes) { return 'expired' }
+    return 'valid'
 }
 
 function Test-FmpDiagnosticDocument {
@@ -230,7 +349,7 @@ function Test-FmpDiagnosticDocument {
         if ($null -eq (Get-FmpParsedDate $at)) { return $false }
     }
     foreach ($entry in (Get-FmpEntries $Data)) {
-        if ($entry.Key -in @('system', 'events', 'startup', 'performance', 'storage', 'advanced') -and $null -ne $entry.Value -and
+        if ($entry.Key -in @('system', 'events', 'startup', 'performance', 'storage', 'advanced', 'observation', 'diagnosis') -and $null -ne $entry.Value -and
             $entry.Value -isnot [System.Collections.IDictionary] -and $entry.Value -isnot [pscustomobject]) { return $false }
         if ($entry.Key -in @('modules', 'subChecks', 'evidence') -and $entry.Value -isnot [System.Collections.IList]) { return $false }
     }
@@ -309,6 +428,24 @@ function New-FmpOutputDirectory {
     }
     $null = [System.IO.Directory]::CreateDirectory($script:FmpAllowedWriteRoots[0], $sec)
     $null = Get-FmpCheckedPath $script:FmpAllowedWriteRoots[0]
+}
+
+$script:FmpReservationFile = 'run-reservation.json'
+
+function New-FmpRunReservation {
+    # C1: consumes the run authorization BEFORE any collector. CreateDirectory is not exclusive (it returns an existing
+    # folder), so exclusivity comes from creating the reservation file with FileMode.CreateNew: the file system lets
+    # exactly one process create it. A folder this function did not create privately (inherited ACL) is refused.
+    # Returns $true only for the run that won; $false when the folder is already reserved or not private. Any other
+    # failure throws. The file is never removed: the folder stays reserved after success, failure or interruption.
+    param([Parameter(Mandatory)][string]$Root, [Parameter(Mandatory)][string]$RunId)
+    New-FmpOutputDirectory $Root
+    $dir = $script:FmpAllowedWriteRoots[0]
+    if (-not [System.IO.Directory]::GetAccessControl($dir).AreAccessRulesProtected) { return $false }
+    $text = '{"fixmypc":"run-reservation","version":1,"runId":"' + ($RunId -replace '[^A-Za-z0-9-]', '') + '","reservedAtUtc":"' + [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ', [System.Globalization.CultureInfo]::InvariantCulture) + '"}'
+    try { Write-FmpUtf8File -Path (Join-Path $dir $script:FmpReservationFile) -Text $text }
+    catch [System.IO.IOException] { return $false }
+    return $true
 }
 
 function Assert-FmpOutputPath {

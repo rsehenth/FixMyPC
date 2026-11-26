@@ -17,6 +17,27 @@ fmp-tests-*/
 #     account/path and exact host details; see docs/reviews/SONNET-5.5-STAGE11.1-GIT-PUBLICATION-AUDIT.md) ---
 /docs/reviews/SONNET-5.5-STAGE9-REAL-SIMPLE-VALIDATION.md
 
+# --- Generated personal packages and private VM homologation evidence ---
+/artifacts/
+/.tmp-homolog/
+
+# --- Local 2.0 development and validation records ---
+/docs/reviews/FIXMYPC-2.0-CODEX-AUDIT-GAP-ANALYSIS.md
+/docs/reviews/FIXMYPC-2.0-DIAGNOSTIC-IMPLEMENTATION.md
+/docs/reviews/FIXMYPC-2.0-FINAL-ABC-HOMOLOGATION.md
+/docs/reviews/FIXMYPC-2.0-FINAL-VM-HOMOLOGATION.md
+/docs/reviews/FIXMYPC-2.0-INDEPENDENT-VALIDATION-GATE.md
+/docs/reviews/FIXMYPC-2.0-PERSONAL-RELEASE-CLOSURE.md
+/docs/reviews/FIXMYPC-2.0-PHASE-A-IMPLEMENTATION.md
+/docs/reviews/FIXMYPC-2.0-PHASE-B-IMPLEMENTATION.md
+/docs/reviews/FIXMYPC-2.0-PHASE-C-IMPLEMENTATION.md
+/docs/reviews/FIXMYPC-2.0-PHASE0-CONSENT-AND-VM-GATE.md
+/docs/reviews/FIXMYPC-2.0-PHASES-ABC-CONSOLIDATED-VALIDATION.md
+/docs/reviews/FIXMYPC-2.0-VM-HOMOLOGATION-RESULTS.md
+
+# --- Generated 2.0 examples with embedded artwork pending rights review ---
+/samples/diagnosis-2.0/
+
 # --- Legacy screenshots (pre-v2 art, show the Windows logo): never publish; 27 files ---
 /docs/screenshots/desktop-*.png
 /docs/screenshots/tablet-*.png

@@ -182,7 +182,7 @@ function ConvertTo-FmpCellText {
         $mb = ConvertTo-FmpNullableDouble $Value
         if ($null -ne $mb) { return Format-FmpBytes -Bytes ($mb * 1MB) -Language $script:FmpLanguage }
     }
-    if ($Value -is [int] -or $Value -is [long] -or $Value -is [double]) {
+    if ($Value -is [int] -or $Value -is [long] -or $Value -is [double] -or $Value -is [decimal]) {
         return Format-FmpNumber -Value $Value -Decimals 1 -Language $script:FmpLanguage
     }
     return Get-FmpEsc $Value
@@ -1239,6 +1239,439 @@ function Get-FmpMethodologySectionHtml {
     return $sb.ToString()
 }
 
+# ---------------------------------------------------------------------
+# Layer 1: investigation result in plain language (diagnosis object)
+# ---------------------------------------------------------------------
+function Get-FmpDiagAnswerBadge {
+    param([string]$Answer)
+    $cls = 'unknown'
+    if ($Answer -eq 'yes') { $cls = 'finding' }
+    elseif ($Answer -eq 'partial') { $cls = 'partial' }
+    elseif ($Answer -eq 'no') { $cls = 'pass' }
+    elseif ($Answer -in @('access_denied', 'unsupported', 'not_collected', 'error')) { $cls = $Answer }
+    $label = Get-FmpOptionalText -Key ('diag.answer.' + $Answer)
+    if ($null -eq $label) { $label = $Answer }
+    return '<span class="st ' + (ConvertTo-FmpHtmlAttr $cls) + '">' + (Get-FmpEsc $label) + '</span>'
+}
+
+function Get-FmpHypothesisSourceName {
+    param([string]$Id)
+    if ($Id -eq 'confirm_peak') { return Get-FmpText 'report.inv.name.confirm_peak' }
+    return Get-FmpText ('diag.q.' + $Id + '.label')
+}
+
+function Get-FmpDiagnosisSectionHtml {
+    param([object]$Dx, [object]$Score)
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.Append('<p class="lead">' + (Get-FmpEsc (Get-FmpValue $Dx 'conclusionText')) + '</p>')
+    [void]$sb.Append('<dl class="facts">')
+    [void]$sb.Append('<div><dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.symptom')) + '</dt><dd>' + (Get-FmpEsc (Get-FmpValue $Dx 'symptomText')) + '</dd></div>')
+    $win = Get-FmpValue $Dx 'observation.windowSec'
+    $winText = Get-FmpText 'report.diag.noObservation'
+    if ((Get-FmpValue $Dx 'observation.available') -eq $true -and $null -ne $win) {
+        $winText = Get-FmpText 'report.diag.window' -Vals @((Get-FmpNum -Value $win -Decimals 0), (Get-FmpNum -Value (Get-FmpValue $Dx 'observation.intervalSec')))
+    }
+    [void]$sb.Append('<div><dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.observation')) + '</dt><dd><span class="sub">' + (Get-FmpEsc $winText) + '</span></dd></div>')
+    [void]$sb.Append('<div><dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.during')) + '</dt><dd><span class="sub">' + (Get-FmpEsc (Get-FmpText ('report.diag.during.' + [string](Get-FmpValue $Dx 'duringProblem')))) + '</span></dd></div>')
+    $inc = Get-FmpValue $Dx 'incident'
+    if ($null -ne $inc) {
+        $incText = Get-FmpText 'report.incident.during'
+        if ([string](Get-FmpValue $inc 'kind') -eq 'at') { $incText = Get-FmpText 'report.incident.at' -Vals @((Get-FmpShortDate -Iso (Get-FmpValue $inc 'atUtc')), (Get-FmpNum -Value (Get-FmpValue $inc 'effectiveToleranceMinutes') -Decimals 0)) }
+        [void]$sb.Append('<div><dt>' + (Get-FmpEsc (Get-FmpText 'report.incident.title')) + '</dt><dd><span class="sub">' + (Get-FmpEsc $incText) + '</span></dd></div>')
+    }
+    $cov = Get-FmpValue $Dx 'coveragePct'
+    $covText = Get-FmpText 'report.value.unavailable'
+    if ($null -ne $cov) { $covText = Format-FmpPercent -Value $cov -Language $script:FmpLanguage }
+    [void]$sb.Append('<div><dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.coverage')) + '</dt><dd>' + (Get-FmpEsc $covText) + ' <span class="sub">' + (Get-FmpEsc (Get-FmpText ('confidence.' + [string](Get-FmpValue $Score 'confidence')))) + '</span></dd></div>')
+    [void]$sb.Append('</dl>')
+
+    [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.diag.observed')) + '</h3><ul class="diag-q">')
+    foreach ($q in @(Get-FmpValue $Dx 'questions')) {
+        if ([string](Get-FmpValue $q 'relevance') -eq 'low') { continue }
+        [void]$sb.Append('<li>' + (Get-FmpDiagAnswerBadge -Answer ([string](Get-FmpValue $q 'answer'))) + ' <span>' + (Get-FmpEsc (Get-FmpValue $q 'text')) + '</span></li>')
+    }
+    [void]$sb.Append('</ul>')
+
+    $keys = @(Get-FmpValue $Dx 'keyFindings')
+    [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.diag.keyFindings')) + '</h3>')
+    if ($keys.Count -eq 0) {
+        [void]$sb.Append('<p>' + (Get-FmpEsc (Get-FmpText 'report.diag.noKeyFindings')) + '</p>')
+    }
+    $n = 0
+    foreach ($k in $keys) {
+        $n++
+        $cls = 'attention'
+        if ((Get-FmpValue $k 'answer') -eq 'yes' -and (Get-FmpValue $k 'relevance') -eq 'high') { $cls = 'review_recommended' }
+        [void]$sb.Append('<article class="finding ' + $cls + '" aria-labelledby="dx-' + $n + '"><div class="finding-head">' + (Get-FmpDiagAnswerBadge -Answer ([string](Get-FmpValue $k 'answer'))) + '<h3 id="dx-' + $n + '">' + (Get-FmpEsc (Get-FmpValue $k 'title')) + '</h3></div><dl>')
+        [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.f.observed')) + '</dt><dd>' + (Get-FmpEsc (Get-FmpValue $k 'observed')) + '</dd>')
+        $hyp = Get-FmpValue $k 'hypothesis'
+        if (-not [string]::IsNullOrWhiteSpace([string]$hyp)) { [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.f.hypothesis')) + '</dt><dd>' + (Get-FmpEsc $hyp) + '</dd>') }
+        $sup = @(Get-FmpValue $k 'supporting' | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+        if ($sup.Count -gt 0) { [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.f.supporting')) + '</dt><dd>' + (Get-FmpEsc ($sup -join ' ')) + '</dd>') }
+        [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.f.why')) + '</dt><dd>' + (Get-FmpEsc (Get-FmpValue $k 'why')) + '</dd>')
+        [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.f.action')) + '</dt><dd>' + (Get-FmpEsc (Get-FmpValue $k 'whatToDo')) + '</dd>')
+        $alts = @(Get-FmpValue $k 'alternatives')
+        if ($alts.Count -gt 0) { [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.f.alternatives')) + '</dt><dd>' + (Get-FmpEsc ($alts -join ' ')) + '</dd>') }
+        $lims = @(Get-FmpValue $k 'limitations')
+        if ($lims.Count -gt 0) { [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.field.limitations')) + '</dt><dd>' + (Get-FmpEsc ($lims -join ' ')) + '</dd>') }
+        $src = (Get-FmpText 'report.diag.f.sourceValue' -Vals @([string](Get-FmpValue $k 'source'), (Get-FmpText ('report.diag.windowKind.' + [string](Get-FmpValue $k 'window'))), (Get-FmpText ('confidence.' + [string](Get-FmpValue $k 'confidence'))), (Get-FmpText ('report.diag.relevance.' + [string](Get-FmpValue $k 'relevance')))))
+        [void]$sb.Append('<dt>' + (Get-FmpEsc (Get-FmpText 'report.diag.f.source')) + '</dt><dd class="small muted">' + (Get-FmpEsc $src) + '</dd>')
+        [void]$sb.Append('</dl></article>')
+    }
+
+    $hyps = @(Get-FmpValue $Dx 'hypotheses' | Where-Object { $null -ne $_ })
+    if ($hyps.Count -gt 0) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.hyp.title')) + '</h3>')
+        $hRows = New-Object System.Collections.Generic.List[object]
+        foreach ($h in $hyps) {
+            $hRows.Add([ordered]@{ name = (Get-FmpValue $h 'title'); state = (Get-FmpValue $h 'stateText'); conf = (Get-FmpText ('confidence.' + [string](Get-FmpValue $h 'confidence')))
+                evidence = ((@(Get-FmpValue $h 'evidence' | Where-Object { $null -ne $_ } | ForEach-Object { Get-FmpHypothesisSourceName ([string]$_) })) -join ', ') })
+        }
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $hRows.ToArray() -Columns @(
+            @{ k = 'name'; h = 'report.hyp.col.name' }, @{ k = 'state'; h = 'report.hyp.col.state' }, @{ k = 'conf'; h = 'report.field.confidence' }, @{ k = 'evidence'; h = 'report.hyp.col.evidence' })))
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.hyp.note')) + '</p>')
+    }
+
+    [void]$sb.Append('<div class="two-col"><div><h3>' + (Get-FmpEsc (Get-FmpText 'report.diag.next')) + '</h3><ul class="limits">')
+    foreach ($s in @(Get-FmpValue $Dx 'nextStepsText')) { [void]$sb.Append('<li>' + (Get-FmpEsc $s) + '</li>') }
+    [void]$sb.Append('</ul></div><div><h3>' + (Get-FmpEsc (Get-FmpText 'report.diag.notVerified')) + '</h3>')
+    $nv = @(Get-FmpValue $Dx 'notVerified')
+    if ($nv.Count -eq 0) { [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.diag.allVerified')) + '</p>') }
+    else {
+        [void]$sb.Append('<ul class="limits">')
+        foreach ($q in @(Get-FmpValue $Dx 'questions')) {
+            if ([string](Get-FmpValue $q 'answer') -in @('yes', 'no', 'partial')) { continue }
+            [void]$sb.Append('<li class="small">' + (Get-FmpEsc (Get-FmpValue $q 'text')) + '</li>')
+        }
+        [void]$sb.Append('</ul>')
+    }
+    [void]$sb.Append('</div></div>')
+    [void]$sb.Append((Get-FmpCalloutHtml -Kind 'neutral' -Text (Get-FmpText 'report.diag.scoreSecondary')))
+    return $sb.ToString()
+}
+
+# ---------------------------------------------------------------------
+# Layer 2: measurements over time and Windows history
+# ---------------------------------------------------------------------
+function Get-FmpMsToSec {
+    param([object]$Ms)
+    $v = ConvertTo-FmpNullableDouble $Ms
+    if ($null -eq $v) { return $null }
+    return [Math]::Round($v / 1000, 1)
+}
+
+function Get-FmpProcessEvidenceHtml {
+    # Committed memory, I/O and executable groups. Tables only: a chart would suggest more precision than a short window has.
+    param([object]$Obs)
+    $procs = Get-FmpValue $Obs 'processes'
+    if ($null -eq (Get-FmpValue $procs 'appGroupBasis')) { return '' }
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.obs.commit')) + '</h3>')
+    $rows = New-Object System.Collections.Generic.List[object]
+    foreach ($p in @(Get-FmpValue $procs 'topCommit' | Where-Object { $null -ne $_ })) {
+        $rows.Add([ordered]@{ name = (Get-FmpValue $p 'name'); pid = [string](Get-FmpValue $p 'pid'); commitPrivateMB = (Get-FmpValue $p 'commitPrivateMB'); workingSetMB = (Get-FmpValue $p 'workingSetMB')
+            workingSetPrivateMB = (Get-FmpValue $p 'workingSetPrivateMB'); growth = (Get-FmpValue $p 'commitGrowthMB'); started = (Get-FmpShortDate -Iso (Get-FmpValue $p 'startedAt')); exited = (Get-FmpValue $p 'exited') })
+    }
+    [void]$sb.Append((ConvertTo-FmpTable -Rows $rows.ToArray() -Columns @(
+        @{ k = 'name'; h = 'table.name' }, @{ k = 'pid'; h = 'report.obs.col.pid' }, @{ k = 'commitPrivateMB'; h = 'report.obs.col.commitMB' }, @{ k = 'workingSetMB'; h = 'report.obs.col.workingSetMB' },
+        @{ k = 'workingSetPrivateMB'; h = 'report.obs.col.privateMB' }, @{ k = 'growth'; h = 'report.obs.col.growthMB' }, @{ k = 'started'; h = 'report.obs.col.started' }, @{ k = 'exited'; h = 'report.obs.col.exited' })))
+    [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.commitNote')) + '</p>')
+
+    [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.obs.io')) + '</h3>')
+    $rows = New-Object System.Collections.Generic.List[object]
+    foreach ($p in @(Get-FmpValue $procs 'topIo' | Where-Object { $null -ne $_ })) {
+        $rows.Add([ordered]@{ name = (Get-FmpValue $p 'name'); pid = [string](Get-FmpValue $p 'pid'); read = [Math]::Round([double](Get-FmpValue $p 'readBytesPerSec') / 1MB, 2); write = [Math]::Round([double](Get-FmpValue $p 'writeBytesPerSec') / 1MB, 2)
+            readOps = (Get-FmpValue $p 'readOpsPerSec'); writeOps = (Get-FmpValue $p 'writeOpsPerSec'); ioSharePct = (Get-FmpValue $p 'ioSharePct') })
+    }
+    [void]$sb.Append((ConvertTo-FmpTable -Rows $rows.ToArray() -Columns @(
+        @{ k = 'name'; h = 'table.name' }, @{ k = 'pid'; h = 'report.obs.col.pid' }, @{ k = 'read'; h = 'report.obs.col.readRate' }, @{ k = 'write'; h = 'report.obs.col.writeRate' },
+        @{ k = 'readOps'; h = 'report.obs.col.readOps' }, @{ k = 'writeOps'; h = 'report.obs.col.writeOps' }, @{ k = 'ioSharePct'; h = 'report.obs.col.ioShare' })))
+    [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.ioNote')) + '</p>')
+
+    [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.obs.apps')) + '</h3>')
+    $rows = New-Object System.Collections.Generic.List[object]
+    foreach ($g in @(Get-FmpValue $procs 'appGroups' | Where-Object { $null -ne $_ })) {
+        $read = Get-FmpValue $g 'readBytesPerSec'; $write = Get-FmpValue $g 'writeBytesPerSec'
+        $rows.Add([ordered]@{ name = (Get-FmpValue $g 'name'); instances = (Get-FmpValue $g 'instancesMax'); commitPeakMB = (Get-FmpValue $g 'commitPeakMB'); workingSetPeakMB = (Get-FmpValue $g 'workingSetPeakMB'); avgCores = (Get-FmpValue $g 'avgCores')
+            read = $(if ($null -ne $read) { [Math]::Round([double]$read / 1MB, 2) } else { $null }); write = $(if ($null -ne $write) { [Math]::Round([double]$write / 1MB, 2) } else { $null }); ioSharePct = (Get-FmpValue $g 'ioSharePct') })
+    }
+    [void]$sb.Append((ConvertTo-FmpTable -Rows $rows.ToArray() -Columns @(
+        @{ k = 'name'; h = 'report.obs.col.executable' }, @{ k = 'instances'; h = 'report.obs.col.instances' }, @{ k = 'commitPeakMB'; h = 'report.obs.col.commitPeak' }, @{ k = 'workingSetPeakMB'; h = 'report.obs.col.wsPeak' },
+        @{ k = 'avgCores'; h = 'report.obs.col.cores' }, @{ k = 'read'; h = 'report.obs.col.readRate' }, @{ k = 'write'; h = 'report.obs.col.writeRate' }, @{ k = 'ioSharePct'; h = 'report.obs.col.ioShare' })))
+    [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.appsNote')) + '</p>')
+    return $sb.ToString()
+}
+
+function Get-FmpEventCatalogHtml {
+    # Events by provider + ID, incident timeline and time-correlated pairs. History is labeled as history.
+    param([object]$D)
+    $cat = Get-FmpValue $D 'events.catalog'
+    if ($null -eq $cat) { return '' }
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.catalog.title')) + '</h3>')
+    $ret = Get-FmpValue $cat 'retention'
+    $retText = Get-FmpText 'report.catalog.retentionUnknown'
+    if ($null -ne (Get-FmpValue $ret 'oldestAt')) {
+        $retKey = 'report.catalog.retentionShort'
+        if ((Get-FmpValue $ret 'coversWindow') -eq $true) { $retKey = 'report.catalog.retentionOk' }
+        $retText = Get-FmpText $retKey -Vals @((Get-FmpShortDate -Iso (Get-FmpValue $ret 'oldestAt')))
+    }
+    [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.catalog.lead' -Vals @((Get-FmpNum -Value (Get-FmpValue $cat 'windowDays') -Decimals 0)))) + ' ' + (Get-FmpEsc $retText) + '</p>')
+    $rows = New-Object System.Collections.Generic.List[object]
+    $absent = New-Object System.Collections.Generic.List[string]
+    $failed = New-Object System.Collections.Generic.List[string]
+    foreach ($e in @(Get-FmpValue $cat 'entries' | Where-Object { $null -ne $_ })) {
+        $st = [string](Get-FmpValue $e 'status')
+        $prov = [string](Get-FmpValue $e 'provider')
+        if ($st -eq 'provider_absent' -and -not $absent.Contains($prov)) { $absent.Add($prov) }
+        if ($st -in @('access_denied', 'unsupported', 'error') -and -not $failed.Contains($prov)) { $failed.Add($prov) }
+        if ([int](Get-FmpValue $e 'count' -Default 0) -lt 1) { continue }
+        $rows.Add([ordered]@{ provider = $prov; id = [string](Get-FmpValue $e 'eventId'); meaning = (Get-FmpText ('report.catalog.meaning.' + [string](Get-FmpValue $e 'meaning')))
+            family = (Get-FmpText ('report.catalog.family.' + [string](Get-FmpValue $e 'family'))); count = (Get-FmpValue $e 'count'); days = (Get-FmpValue $e 'distinctDays'); last = (Get-FmpShortDate -Iso (Get-FmpValue $e 'lastSeen')) })
+    }
+    [void]$sb.Append((ConvertTo-FmpTable -Rows $rows.ToArray() -Columns @(
+        @{ k = 'provider'; h = 'report.catalog.col.provider' }, @{ k = 'id'; h = 'report.catalog.col.id' }, @{ k = 'meaning'; h = 'report.catalog.col.meaning' }, @{ k = 'family'; h = 'report.catalog.col.family' },
+        @{ k = 'count'; h = 'report.obs.col.count' }, @{ k = 'days'; h = 'report.catalog.col.days' }, @{ k = 'last'; h = 'report.catalog.col.last' })))
+    if ($absent.Count -gt 0) { [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.catalog.absent' -Vals @(($absent.ToArray() -join ', ')))) + '</p>') }
+    if ($failed.Count -gt 0) { [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.catalog.failed' -Vals @(($failed.ToArray() -join ', ')))) + '</p>') }
+    [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.catalog.note')) + '</p>')
+
+    $dx = Get-FmpValue $D 'diagnosis'
+    $inc = Get-FmpValue $dx 'incident'
+    if ($null -ne $inc) {
+        [void]$sb.Append('<p class="small"><strong>' + (Get-FmpEsc (Get-FmpText 'report.incident.title')) + ':</strong> ' + (Get-FmpEsc (Get-FmpText ('report.incident.reliability.' + [string](Get-FmpValue $inc 'reliability')))) + '</p>')
+    }
+    $pairs = @(Get-FmpValue $dx 'correlations' | Where-Object { $null -ne $_ })
+    if ($pairs.Count -gt 0) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.correlation.title')) + '</h3><ul class="limits">')
+        foreach ($p in $pairs) {
+            [void]$sb.Append('<li>' + (Get-FmpEsc (Get-FmpText ('report.correlation.' + [string](Get-FmpValue $p 'id')) -Vals @((Get-FmpNum -Value (Get-FmpValue $p 'count') -Decimals 0), (Get-FmpNum -Value (Get-FmpValue $p 'closestSec') -Decimals 0)))) + '</li>')
+        }
+        [void]$sb.Append('</ul><p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.correlation.note')) + '</p>')
+    }
+    $tl = @(Get-FmpValue $dx 'timeline' | Where-Object { $null -ne $_ })
+    if ($tl.Count -gt 0) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.timeline.title')) + '</h3>')
+        $tRows = New-Object System.Collections.Generic.List[object]
+        foreach ($r in $tl) {
+            $tRows.Add([ordered]@{ at = (Get-FmpShortDate -Iso (Get-FmpValue $r 'at')); ev = ([string](Get-FmpValue $r 'provider') + ' ' + (Get-FmpValue $r 'eventId')); meaning = (Get-FmpText ('report.catalog.meaning.' + [string](Get-FmpValue $r 'meaning'))); delta = (Get-FmpValue $r 'deltaText'); near = (Get-FmpValue $r 'near') })
+        }
+        $cols = @(@{ k = 'at'; h = 'report.obs.col.date' }, @{ k = 'ev'; h = 'report.timeline.col.event' }, @{ k = 'meaning'; h = 'report.catalog.col.meaning' })
+        if ($null -ne $inc) { $cols += @(@{ k = 'delta'; h = 'report.timeline.col.delta' }, @{ k = 'near'; h = 'report.timeline.col.near' }) }
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $tRows.ToArray() -MaxRows 25 -Columns $cols))
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.timeline.note')) + '</p>')
+    }
+    return $sb.ToString()
+}
+
+function Get-FmpInvestigationsHtml {
+    # What the complementary investigations did, and what each one found. A source that could not be read says so.
+    param([object]$D)
+    $inv = Get-FmpValue $D 'investigations'
+    if ($null -eq $inv) { return '' }
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.inv.title')) + '</h3>')
+    [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.inv.lead' -Vals @((Get-FmpText ('report.inv.depth.' + [string](Get-FmpValue $inv 'depth'))), (Get-FmpNum -Value ([double](Get-FmpValue $inv 'elapsedMs' -Default 0) / 1000) -Decimals 0), (Get-FmpNum -Value ([double](Get-FmpValue $inv 'budgetMs' -Default 0) / 1000) -Decimals 0)))) + '</p>')
+    $rows = New-Object System.Collections.Generic.List[object]
+    foreach ($r in @(Get-FmpValue $inv 'runs' | Where-Object { $null -ne $_ })) {
+        $rows.Add([ordered]@{ name = (Get-FmpText ('report.inv.name.' + [string](Get-FmpValue $r 'id'))); category = (Get-FmpText ('report.inv.cat.' + [string](Get-FmpValue $r 'category')))
+            state = (Get-FmpText ('report.inv.state.' + [string](Get-FmpValue $r 'state'))); truncated = (Get-FmpValue $r 'truncated'); sec = [Math]::Round([double](Get-FmpValue $r 'elapsedMs' -Default 0) / 1000, 1) })
+    }
+    [void]$sb.Append((ConvertTo-FmpTable -Rows $rows.ToArray() -Columns @(
+        @{ k = 'name'; h = 'report.inv.col.name' }, @{ k = 'category'; h = 'report.inv.col.category' }, @{ k = 'state'; h = 'table.status' },
+        @{ k = 'truncated'; h = 'report.inv.col.truncated' }, @{ k = 'sec'; h = 'report.inv.col.sec' })))
+
+    $wer = Get-FmpValue $inv 'results.wer_events'
+    if ([string](Get-FmpValue $wer 'state') -in @('ok', 'empty')) {
+        $s = Get-FmpValue $wer 'summary'
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.wer.title')) + '</h3>')
+        $kindRows = New-Object System.Collections.Generic.List[object]
+        foreach ($k in (Get-FmpEntries (Get-FmpValue $s 'byKind'))) {
+            $kindRows.Add([ordered]@{ kind = (Get-FmpText ('report.wer.kind.' + [string]$k.Key)); reports = (Get-FmpValue $k.Value 'reports'); records = (Get-FmpValue $k.Value 'records'); newRecent = (Get-FmpValue $k.Value 'newRecent') })
+        }
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $kindRows.ToArray() -Columns @(
+            @{ k = 'kind'; h = 'report.wer.col.kind' }, @{ k = 'reports'; h = 'report.wer.col.reports' }, @{ k = 'records'; h = 'report.wer.col.records' }, @{ k = 'newRecent'; h = 'report.wer.col.new' })))
+        $kernel = New-Object System.Collections.Generic.List[object]
+        foreach ($r in @(Get-FmpValue $s 'reportsList' | Where-Object { $null -ne $_ -and [string](Get-FmpValue $_ 'kind') -in @('live_kernel', 'blue_screen') })) {
+            $kernel.Add([ordered]@{ kind = (Get-FmpText ('report.wer.kind.' + [string](Get-FmpValue $r 'kind'))); code = [string](Get-FmpValue $r 'code'); first = (Get-FmpShortDate -Iso (Get-FmpValue $r 'firstSeen')); records = (Get-FmpValue $r 'records'); cls = (Get-FmpText ('report.wer.class.' + [string](Get-FmpValue $r 'classification'))) })
+        }
+        if ($kernel.Count -gt 0) {
+            [void]$sb.Append((ConvertTo-FmpTable -Rows $kernel.ToArray() -MaxRows 15 -Columns @(
+                @{ k = 'kind'; h = 'report.wer.col.kind' }, @{ k = 'code'; h = 'report.wer.col.code' }, @{ k = 'first'; h = 'report.wer.col.first' }, @{ k = 'records'; h = 'report.wer.col.records' }, @{ k = 'cls'; h = 'report.wer.col.class' })))
+        }
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.wer.note')) + '</p>')
+    }
+
+    $gpuUse = Get-FmpValue $inv 'results.gpu_use'
+    $gpuEvents = Get-FmpValue $inv 'results.gpu_events'
+    if ($null -ne $gpuUse -or $null -ne $gpuEvents) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.gpu.title')) + '</h3>')
+        $gRows = New-Object System.Collections.Generic.List[object]
+        foreach ($a in @(Get-FmpValue $gpuUse 'adapters' | Where-Object { $null -ne $_ })) {
+            $eng = @(Get-FmpValue $a 'engines' | Where-Object { $null -ne $_ } | Select-Object -First 3 | ForEach-Object { [string](Get-FmpValue $_ 'type') + ' ' + (Get-FmpNum -Value (Get-FmpValue $_ 'avgPct')) + '% / ' + (Get-FmpNum -Value (Get-FmpValue $_ 'maxPct')) + '%' }) -join '; '
+            $gRows.Add([ordered]@{ adapter = ('GPU ' + (Get-FmpValue $a 'adapter')); engines = $eng; dedicatedUsedMB = (Get-FmpValue $a 'dedicatedUsedMB'); sharedUsedMB = (Get-FmpValue $a 'sharedUsedMB') })
+        }
+        if ($gRows.Count -gt 0) {
+            [void]$sb.Append((ConvertTo-FmpTable -Rows $gRows.ToArray() -Columns @(
+                @{ k = 'adapter'; h = 'report.gpu.col.adapter' }, @{ k = 'engines'; h = 'report.gpu.col.engines' }, @{ k = 'dedicatedUsedMB'; h = 'report.gpu.col.dedicated' }, @{ k = 'sharedUsedMB'; h = 'report.gpu.col.shared' })))
+        }
+        elseif ($null -ne $gpuUse) { [void]$sb.Append('<p class="small">' + (Get-FmpEsc (Get-FmpText 'report.gpu.unavailable' -Vals @((Get-FmpText ('report.inv.state.' + [string](Get-FmpValue $gpuUse 'state')))))) + '</p>') }
+        $vRows = New-Object System.Collections.Generic.List[object]
+        foreach ($p in @(Get-FmpValue $gpuEvents 'providers' | Where-Object { $null -ne $_ -and [int](Get-FmpValue $_ 'count' -Default 0) -gt 0 })) {
+            $ids = @(Get-FmpValue $p 'ids' | Where-Object { $null -ne $_ } | ForEach-Object { [string](Get-FmpValue $_ 'eventId') + ' (' + (Get-FmpValue $_ 'count') + 'x)' }) -join ', '
+            $vRows.Add([ordered]@{ provider = (Get-FmpValue $p 'provider'); vendor = (Get-FmpText ('report.gpu.vendor.' + [string](Get-FmpValue $p 'vendor'))); count = (Get-FmpValue $p 'count'); ids = $ids })
+        }
+        if ($vRows.Count -gt 0) {
+            [void]$sb.Append((ConvertTo-FmpTable -Rows $vRows.ToArray() -Columns @(
+                @{ k = 'provider'; h = 'report.catalog.col.provider' }, @{ k = 'vendor'; h = 'report.gpu.col.vendor' }, @{ k = 'count'; h = 'report.obs.col.count' }, @{ k = 'ids'; h = 'report.catalog.col.id' })))
+        }
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.gpu.note')) + '</p>')
+    }
+
+    $net = Get-FmpValue $inv 'results.net_ports'
+    if ($null -ne $net) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.net.title')) + '</h3>')
+        if ([string](Get-FmpValue $net 'state') -eq 'ok') {
+            $samples = @(Get-FmpValue $net 'samples' | Where-Object { $null -ne $_ })
+            $inUse = $null
+            if ($samples.Count -gt 0) { $inUse = Get-FmpValue $samples[$samples.Count - 1] 'inUse' }
+            [void]$sb.Append('<p class="small">' + (Get-FmpEsc (Get-FmpText 'report.net.summary' -Vals @((Get-FmpNum -Value $inUse -Decimals 0), (Get-FmpNum -Value (Get-FmpValue $net 'rangeSize') -Decimals 0), (Get-FmpNum -Value (Get-FmpValue $net 'usagePct')), (Get-FmpText ('diag.trend.' + [string](Get-FmpValue $net 'trend')))))) + '</p>')
+            $stateRows = New-Object System.Collections.Generic.List[object]
+            foreach ($k in (Get-FmpEntries (Get-FmpValue $net 'byState'))) { $stateRows.Add([ordered]@{ state = [string]$k.Key; count = $k.Value }) }
+            [void]$sb.Append((ConvertTo-FmpTable -Rows @($stateRows.ToArray() | Sort-Object -Property @{ Expression = { $_['count'] }; Descending = $true }) -Columns @(
+                @{ k = 'state'; h = 'report.net.col.state' }, @{ k = 'count'; h = 'report.obs.col.count' })))
+            $owners = @(Get-FmpValue $net 'topOwners' | Where-Object { $null -ne $_ } | ForEach-Object { [ordered]@{ name = (Get-FmpValue $_ 'name'); pid = [string](Get-FmpValue $_ 'pid'); connections = (Get-FmpValue $_ 'connections') } })
+            [void]$sb.Append((ConvertTo-FmpTable -Rows $owners -Columns @(
+                @{ k = 'name'; h = 'table.name' }, @{ k = 'pid'; h = 'report.obs.col.pid' }, @{ k = 'connections'; h = 'report.net.col.connections' })))
+        }
+        else { [void]$sb.Append('<p class="small">' + (Get-FmpEsc (Get-FmpText ('report.inv.state.' + [string](Get-FmpValue $net 'state')))) + '</p>') }
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.net.note')) + '</p>')
+    }
+
+    $hosts = @(Get-FmpValue $inv 'results.service_hosts.hosts' | Where-Object { $null -ne $_ })
+    if ($hosts.Count -gt 0) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.svc.title')) + '</h3>')
+        $sRows = @($hosts | ForEach-Object { [ordered]@{ pid = [string](Get-FmpValue $_ 'pid'); count = (Get-FmpValue $_ 'serviceCount'); services = (@(Get-FmpValue $_ 'services') -join ', ') } })
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $sRows -Columns @(
+            @{ k = 'pid'; h = 'report.obs.col.pid' }, @{ k = 'count'; h = 'report.obs.col.count' }, @{ k = 'services'; h = 'report.svc.col.services' })))
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.svc.note')) + '</p>')
+    }
+
+    $map = @(Get-FmpValue $D 'diagnosis.storageMap' | Where-Object { $null -ne $_ })
+    if ($map.Count -gt 0) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.diskmap.title')) + '</h3>')
+        $mRows = @($map | ForEach-Object { [ordered]@{ disk = ('#' + (Get-FmpValue $_ 'diskNumber')); mapping = (Get-FmpText ('report.diskmap.mapping.' + [string](Get-FmpValue $_ 'mapping'))); iface = (Get-FmpValue $_ 'interfaceType'); size = (Get-FmpValue $_ 'sizeGB'); events = (Get-FmpValue $_ 'events'); sinceBoot = (Get-FmpValue $_ 'eventsSinceBoot') } })
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $mRows -Columns @(
+            @{ k = 'disk'; h = 'report.diskmap.col.disk' }, @{ k = 'mapping'; h = 'report.diskmap.col.mapping' }, @{ k = 'iface'; h = 'report.diskmap.col.interface' }, @{ k = 'size'; h = 'report.diskmap.col.size' },
+            @{ k = 'events'; h = 'report.obs.col.count' }, @{ k = 'sinceBoot'; h = 'report.diskmap.col.sinceBoot' })))
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.diskmap.note')) + '</p>')
+    }
+
+    $rel = Get-FmpValue $inv 'results.storage_reliability'
+    if ($null -ne $rel) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.rel.title')) + '</h3>')
+        $relRows = @(Get-FmpValue $rel 'disks' | Where-Object { $null -ne $_ } | ForEach-Object { [ordered]@{ disk = ('#' + (Get-FmpValue $_ 'diskNumber')); temp = (Get-FmpValue $_ 'temperatureC'); tempMax = (Get-FmpValue $_ 'temperatureMaxC'); readErr = (Get-FmpValue $_ 'readErrorsTotal'); writeErr = (Get-FmpValue $_ 'writeErrorsTotal'); wearPct = (Get-FmpValue $_ 'wearPct'); hours = (Get-FmpValue $_ 'powerOnHours') } })
+        if ($relRows.Count -gt 0) {
+            [void]$sb.Append((ConvertTo-FmpTable -Rows $relRows -Columns @(
+                @{ k = 'disk'; h = 'report.diskmap.col.disk' }, @{ k = 'temp'; h = 'report.rel.col.temp' }, @{ k = 'tempMax'; h = 'report.rel.col.tempMax' }, @{ k = 'readErr'; h = 'report.rel.col.readErr' },
+                @{ k = 'writeErr'; h = 'report.rel.col.writeErr' }, @{ k = 'wearPct'; h = 'report.rel.col.wear' }, @{ k = 'hours'; h = 'report.rel.col.hours' })))
+        }
+        else { [void]$sb.Append('<p class="small">' + (Get-FmpEsc (Get-FmpText ('report.inv.state.' + [string](Get-FmpValue $rel 'state')))) + '</p>') }
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.rel.note')) + '</p>')
+    }
+
+    $confirm = Get-FmpValue $inv 'results.confirm_peak.families'
+    if ($null -ne $confirm) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.confirm.title')) + '</h3><ul class="limits">')
+        foreach ($k in (Get-FmpEntries $confirm)) {
+            [void]$sb.Append('<li>' + (Get-FmpEsc ((Get-FmpText ('report.confirm.family.' + [string]$k.Key)) + ': ' + (Get-FmpText ('report.confirm.verdict.' + [string]$k.Value)))) + '</li>')
+        }
+        [void]$sb.Append('</ul>')
+    }
+    return $sb.ToString()
+}
+
+function Get-FmpObservationSectionHtml {
+    param([object]$D)
+    $sb = New-Object System.Text.StringBuilder
+    $obs = Get-FmpValue $D 'observation'
+    if ($null -ne $obs) {
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.lead' -Vals @((Get-FmpNum -Value (Get-FmpValue $obs 'actualSec') -Decimals 0), (Get-FmpNum -Value (Get-FmpValue $obs 'intervalSec')), (Get-FmpNum -Value (Get-FmpValue $obs 'intervals'))))) + '</p>')
+        $rows = New-Object System.Collections.Generic.List[object]
+        $cpu = Get-FmpValue $obs 'cpu'
+        $rows.Add([ordered]@{ metric = (Get-FmpText 'report.obs.cpuPct'); state = (Get-FmpText ('state.' + [string](Get-FmpValue $cpu 'state'))); avg = (Get-FmpValue $cpu 'stats.avg'); p90 = (Get-FmpValue $cpu 'stats.p90'); max = (Get-FmpValue $cpu 'stats.max') })
+        $mem = Get-FmpValue $obs 'memory'
+        $mst = Get-FmpText ('state.' + [string](Get-FmpValue $mem 'state'))
+        $rows.Add([ordered]@{ metric = (Get-FmpText 'report.obs.availMB'); state = $mst; avg = (Get-FmpValue $mem 'availableMB.avg'); p90 = (Get-FmpValue $mem 'availableMB.p90'); max = (Get-FmpValue $mem 'availableMB.min') })
+        $rows.Add([ordered]@{ metric = (Get-FmpText 'report.obs.commitPct'); state = $mst; avg = (Get-FmpValue $mem 'commitPct.avg'); p90 = (Get-FmpValue $mem 'commitPct.p90'); max = (Get-FmpValue $mem 'commitPct.max') })
+        $rows.Add([ordered]@{ metric = (Get-FmpText 'report.obs.pagesIn'); state = $mst; avg = (Get-FmpValue $mem 'pagesInputPerSec.avg'); p90 = (Get-FmpValue $mem 'pagesInputPerSec.p90'); max = (Get-FmpValue $mem 'pagesInputPerSec.max') })
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $rows.ToArray() -Columns @(
+            @{ k = 'metric'; h = 'report.obs.col.metric' }, @{ k = 'state'; h = 'table.status' }, @{ k = 'avg'; h = 'report.obs.col.avg' },
+            @{ k = 'p90'; h = 'report.obs.col.p90' }, @{ k = 'max'; h = 'report.obs.col.extreme' })))
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.memNote')) + '</p>')
+
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.obs.disks')) + '</h3>')
+        $dRows = New-Object System.Collections.Generic.List[object]
+        foreach ($dk in @(Get-FmpValue $obs 'disks.items')) {
+            $dRows.Add([ordered]@{ name = (Get-FmpValue $dk 'name'); readMs = (Get-FmpValue $dk 'readLatencyMs.avg'); writeMs = (Get-FmpValue $dk 'writeLatencyMs.avg')
+                queue = (Get-FmpValue $dk 'avgQueue.avg'); queueMax = (Get-FmpValue $dk 'avgQueue.max'); active = (Get-FmpValue $dk 'activeIntervals') })
+        }
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $dRows.ToArray() -Columns @(
+            @{ k = 'name'; h = 'table.name' }, @{ k = 'readMs'; h = 'report.obs.col.readMs' }, @{ k = 'writeMs'; h = 'report.obs.col.writeMs' },
+            @{ k = 'queue'; h = 'report.obs.col.queue' }, @{ k = 'queueMax'; h = 'report.obs.col.queueMax' }, @{ k = 'active'; h = 'report.obs.col.active' })))
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.diskNote')) + '</p>')
+
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.obs.processes')) + '</h3>')
+        [void]$sb.Append((ConvertTo-FmpTable -Rows @(Get-FmpValue $obs 'processes.topCpu') -Columns @(
+            @{ k = 'name'; h = 'table.name' }, @{ k = 'avgPctOfMachine'; h = 'report.obs.col.cpuPct' }, @{ k = 'avgCores'; h = 'report.obs.col.cores' },
+            @{ k = 'activeShare'; h = 'report.obs.col.activeShare' }, @{ k = 'privateMB'; h = 'report.obs.col.privateMB' }, @{ k = 'privateGrowth'; h = 'report.obs.col.growthMB' })))
+        [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.procNote')) + '</p>')
+        [void]$sb.Append((Get-FmpProcessEvidenceHtml -Obs $obs))
+        $cost = Get-FmpValue $obs 'cost'
+        if ($null -ne $cost) {
+            [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.cost' -Vals @((Get-FmpNum -Value (Get-FmpValue $cost 'queryMsAvg')), (Get-FmpNum -Value (Get-FmpValue $cost 'queryMsMax'))))) + '</p>')
+        }
+    }
+    [void]$sb.Append((Get-FmpEventCatalogHtml -D $D))
+    [void]$sb.Append((Get-FmpInvestigationsHtml -D $D))
+    $bp = Get-FmpValue $D 'events.bootPerformance'
+    if ($null -ne $bp) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.obs.boots')) + '</h3>')
+        $bst = [string](Get-FmpValue $bp 'status')
+        if ($bst -in @('ok', 'empty')) {
+            $bRows = New-Object System.Collections.Generic.List[object]
+            foreach ($b in @(Get-FmpValue $bp 'boots')) {
+                $bRows.Add([ordered]@{ at = (Get-FmpShortDate -Iso (Get-FmpValue $b 'at')); total = (Get-FmpMsToSec (Get-FmpValue $b 'bootMs')); main = (Get-FmpMsToSec (Get-FmpValue $b 'mainPathMs'))
+                    post = (Get-FmpMsToSec (Get-FmpValue $b 'postBootMs')); degraded = (Get-FmpValue $b 'degraded'); afterUpdate = (Get-FmpValue $b 'afterUpdate') })
+            }
+            [void]$sb.Append((ConvertTo-FmpTable -Rows $bRows.ToArray() -MaxRows 15 -Columns @(
+                @{ k = 'at'; h = 'report.obs.col.date' }, @{ k = 'total'; h = 'report.obs.col.bootSec' }, @{ k = 'main'; h = 'report.obs.col.mainSec' },
+                @{ k = 'post'; h = 'report.obs.col.postSec' }, @{ k = 'degraded'; h = 'report.obs.col.degraded' }, @{ k = 'afterUpdate'; h = 'report.obs.col.afterUpdate' })))
+            [void]$sb.Append('<p class="small muted">' + (Get-FmpEsc (Get-FmpText 'report.obs.bootNote')) + '</p>')
+            [void]$sb.Append((ConvertTo-FmpTable -Rows @(Get-FmpValue $bp 'contributors') -MaxRows 15 -Columns @(
+                @{ k = 'name'; h = 'table.name' }, @{ k = 'kind'; h = 'report.obs.col.kind' }, @{ k = 'count'; h = 'report.obs.col.count' },
+                @{ k = 'maxDegradationMs'; h = 'report.obs.col.degradationMs' })))
+        }
+        else {
+            [void]$sb.Append('<p>' + (Get-FmpStatusBadge -State $bst) + ' ' + (Get-FmpEsc (Get-FmpText 'report.obs.bootUnavailable')) + '</p>')
+        }
+    }
+    $dx = Get-FmpValue $D 'diagnosis'
+    if ($null -ne $dx) {
+        [void]$sb.Append('<h3>' + (Get-FmpEsc (Get-FmpText 'report.obs.allQuestions')) + '</h3>')
+        $qRows = New-Object System.Collections.Generic.List[object]
+        foreach ($q in @(Get-FmpValue $dx 'questions')) {
+            $qRows.Add([ordered]@{ q = (Get-FmpText ('diag.q.' + [string](Get-FmpValue $q 'id') + '.label')); text = (Get-FmpValue $q 'text')
+                rel = (Get-FmpText ('report.diag.relevance.' + [string](Get-FmpValue $q 'relevance'))); conf = (Get-FmpText ('confidence.' + [string](Get-FmpValue $q 'confidence')))
+                src = (Get-FmpValue $q 'source'); alt = (@(Get-FmpValue $q 'alternatives') -join ' ') })
+        }
+        [void]$sb.Append((ConvertTo-FmpTable -Rows $qRows.ToArray() -Columns @(
+            @{ k = 'q'; h = 'report.obs.col.question' }, @{ k = 'text'; h = 'report.obs.col.answer' }, @{ k = 'rel'; h = 'report.obs.col.relevance' },
+            @{ k = 'conf'; h = 'report.field.confidence' }, @{ k = 'src'; h = 'report.obs.col.source' }, @{ k = 'alt'; h = 'report.diag.f.alternatives' })))
+    }
+    return $sb.ToString()
+}
+
 function Get-FmpMetaItemHtml {
     # Header metadata is shown only when the run actually recorded it.
     param([string]$LabelKey, [object]$Value)
@@ -1325,8 +1758,14 @@ function Get-FmpHtmlReportText {
     }
 
     # ---- Navigation (plain anchors, no script) ----
-    $navItems = @(
-        @('summary', 'report.section.summary'), @('findings', 'report.section.findings'), @('hardware', 'report.section.hardware'),
+    $dx = Get-FmpValue -Data $Diagnostic -Path 'diagnosis'
+    $hasObservationPanel = ($null -ne (Get-FmpValue $Diagnostic 'observation') -or $null -ne (Get-FmpValue $Diagnostic 'events.bootPerformance') -or $null -ne (Get-FmpValue $Diagnostic 'events.catalog') -or $null -ne $dx)
+    $navItems = @()
+    if ($null -ne $dx) { $navItems += , @('diagnosis', 'report.section.diagnosis') }
+    $navItems += @(
+        @('summary', 'report.section.summary'), @('findings', 'report.section.findings'))
+    if ($hasObservationPanel) { $navItems += , @('observation', 'report.section.observation') }
+    $navItems += @(@('hardware', 'report.section.hardware'),
         @('storage', 'report.section.storagePerf'), @('startup', 'report.section.startup'), @('events', 'report.section.events'),
         @('advanced', 'report.section.advanced'), @('limitations', 'report.section.limitations'),
         @('privacy', 'report.section.privacyNext'), @('methodology', 'report.section.methodology')
@@ -1336,6 +1775,13 @@ function Get-FmpHtmlReportText {
         [void]$sb.Append('<li><a href="#' + $ni[0] + '">' + (Get-FmpEsc (Get-FmpText $ni[1])) + '</a></li>')
     }
     [void]$sb.Append('</ul></nav><main id="main">')
+
+    # ---- Layer 1: investigation result (plain language) ----
+    if ($null -ne $dx) {
+        [void]$sb.Append((Get-FmpPanelOpen -Id 'diagnosis' -TitleKey 'report.section.diagnosis' -Assets $assets))
+        [void]$sb.Append((Get-FmpDiagnosisSectionHtml -Dx $dx -Score $Score))
+        [void]$sb.Append('</section>')
+    }
 
     # ---- Executive summary ----
     $modules = @(Get-FmpValue -Data $Diagnostic -Path 'modules')
@@ -1357,10 +1803,16 @@ function Get-FmpHtmlReportText {
     [void]$sb.Append((Get-FmpSummaryBodyHtml -Score $Score -Ordered $ordered -Intro $summaryIntro))
     [void]$sb.Append('</section>')
 
-    # ---- Findings ----
+    # ---- Layer 2: technical details ----
+    if ($null -ne $dx) { [void]$sb.Append('<p class="layer-sep">' + (Get-FmpEsc (Get-FmpText 'report.layer.details')) + '</p>') }
     [void]$sb.Append((Get-FmpPanelOpen -Id 'findings' -TitleKey 'report.section.findings' -Assets $assets -IconKey 'findings'))
     [void]$sb.Append((Get-FmpFindingsSectionHtml -Ordered $ordered))
     [void]$sb.Append('</section>')
+    if ($hasObservationPanel) {
+        [void]$sb.Append((Get-FmpPanelOpen -Id 'observation' -TitleKey 'report.section.observation' -Assets $assets))
+        [void]$sb.Append((Get-FmpObservationSectionHtml -D $Diagnostic))
+        [void]$sb.Append('</section>')
+    }
 
     # ---- Hardware and Windows ----
     [void]$sb.Append((Get-FmpPanelOpen -Id 'hardware' -TitleKey 'report.section.hardware' -Assets $assets -IconKey 'hardware'))

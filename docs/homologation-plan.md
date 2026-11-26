@@ -1,6 +1,6 @@
 # Plano de Homologação Futura em Ambientes Windows Autorizados
 
-**Projeto:** FIX MY PC: Windows Diagnostic & Audit Skill (`v0.1.0`)  
+**Projeto:** FIX MY PC: PC Diagnostic & Audit Skill (`v0.1.0`)  
 **Status:** **PREPARADO — NÃO EXECUTADO NA ETAPA 3**  
 **Pré-requisito de execução:** Autorização explícita do proprietário da máquina/VM de teste e consentimento específico por execução.
 

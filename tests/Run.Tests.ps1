@@ -743,7 +743,7 @@ Assert-FmpTrue -Name 'regras: toda limitacao tem chave estavel nos dois idiomas'
 # 2. Collector limitations: every call site resolves to limit.<key> in both locales.
 $limitSites = 0
 $limitMissing = New-Object System.Collections.Generic.List[string]
-foreach ($file in @('Advanced.ps1', 'Events.ps1', 'Performance.ps1', 'Startup.ps1', 'Storage.ps1', 'System.ps1')) {
+foreach ($file in @('Advanced.ps1', 'Events.ps1', 'Performance.ps1', 'Startup.ps1', 'Storage.ps1', 'System.ps1', 'Observation.ps1')) {
     $cAst = Get-FmpParsedAst -Path (Join-Path (Join-Path $root 'src\collectors') $file)
     foreach ($cmd in $cAst.FindAll({ param($a) $a -is [System.Management.Automation.Language.CommandAst] }, $true)) {
         if ($cmd.GetCommandName() -ne 'Add-FmpLimitation') { continue }
@@ -763,7 +763,7 @@ foreach ($file in @('Advanced.ps1', 'Events.ps1', 'Performance.ps1', 'Startup.ps
         if ($null -eq $resolved -or -not (Test-FmpLocaleKeyBoth ('limit.' + $resolved))) { $limitMissing.Add($file + ':' + $cmd.Extent.StartLineNumber) }
     }
 }
-Assert-FmpEqual -Name 'coletores: 22 pontos de limitacao' -Expected 22 -Actual $limitSites
+Assert-FmpEqual -Name 'coletores: 29 pontos de limitacao (2.0: +1 Events, +2 Observation; Fase A: +2 Events, +2 Observation)' -Expected 29 -Actual $limitSites
 Assert-FmpTrue -Name 'coletores: todo ponto resolve limit.<chave> nos dois idiomas' -Condition ($limitMissing.Count -eq 0) -Detail ($limitMissing -join ', ')
 
 # 3. Score limitations carry keys.
@@ -1118,7 +1118,9 @@ foreach ($p9Rel in @('README.pt-BR.md', 'docs\readonly-policy.md')) {
 $p9Policy = [System.IO.File]::ReadAllText((Join-Path $root 'docs\readonly-policy.md'))
 Assert-FmpTrue -Name 'FMP-09: politica registra a avaliacao do token de consentimento e a razao de nao implementa-lo' -Condition ($p9Policy.Contains('-IssueConsentToken') -and $p9Policy -match 'N.o implementado')
 # The existing gate is unchanged: no flag and no interactive answer means no collection.
-Assert-FmpTrue -Name 'FMP-09: fluxo atual nao foi enfraquecido (sem flag e sem resposta nao ha consentimento)' -Condition (-not (Test-FmpCollectionConsent $false $false '') -and -not (Test-FmpCollectionConsent $false $true '') -and (Test-FmpCollectionConsent $true $false ''))
+Assert-FmpTrue -Name 'FMP-09: fluxo atual nao foi enfraquecido (sem flag e sem resposta nao ha consentimento)' -Condition (-not (Test-FmpCollectionConsent $false $false '') -and -not (Test-FmpCollectionConsent $false $true '') -and (Test-FmpCollectionConsent $true $false '' 'valid'))
+# 2.0: the flag alone is only a declaration; it needs the -Plan token bound to this run.
+Assert-FmpTrue -Name '2.0: -AcceptReadOnlyPolicy sozinho nao autoriza (token ausente, invalido ou expirado)' -Condition (-not (Test-FmpCollectionConsent $true $false '') -and -not (Test-FmpCollectionConsent $true $false '' 'scope_mismatch') -and -not (Test-FmpCollectionConsent $true $false '' 'expired'))
 
 Start-FmpSuite 'I. Entrada do CLI com coletores isolados'
 $mockRoot = Join-Path $scratch 'mock-project'
@@ -1126,6 +1128,7 @@ New-FmpOutputDirectory $mockRoot
 $mockCollectors = @{
     'System.ps1' = 'Get-FmpSystemData'; 'Events.ps1' = 'Get-FmpEventData'; 'Startup.ps1' = 'Get-FmpStartupData'
     'Performance.ps1' = 'Get-FmpPerformanceData'; 'Storage.ps1' = 'Get-FmpStorageData'; 'Advanced.ps1' = 'Get-FmpAdvancedData'
+    'Observation.ps1' = 'Get-FmpObservationData'; 'Investigations.ps1' = 'Invoke-FmpInvestigationPlan'
 }
 foreach ($relative in $script:FmpSourceFiles) {
     $target = Join-Path $mockRoot $relative
@@ -1166,7 +1169,7 @@ finally { $ErrorActionPreference = $previousPreference }
 Assert-FmpEqual -Name 'erro de binding falha antes de carregar coletores' -Expected 1 -Actual $bindingExit
 Assert-FmpTrue -Name 'consentimento negado e fixture invalida nao criam saida' -Condition (-not (Test-Path -LiteralPath $deniedOut))
 Assert-FmpTrue -Name 'respostas que comecam com Y ou 1 nao valem consentimento' -Condition (-not (Test-FmpCollectionConsent $false $true 'yesterday') -and -not (Test-FmpCollectionConsent $false $true '10'))
-Assert-FmpTrue -Name 'resposta explicita ou flag humana valem consentimento' -Condition ((Test-FmpCollectionConsent $false $true ' SIM ') -and (Test-FmpCollectionConsent $true $false ''))
+Assert-FmpTrue -Name 'resposta explicita ou flag com token valido valem consentimento' -Condition ((Test-FmpCollectionConsent $false $true ' SIM ') -and (Test-FmpCollectionConsent $true $false '' 'valid'))
 & powershell -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File $mockCli -Fixture $validFixture -Mode full -OutDir $deniedOut -IncludeInternalJson *> $null
 Assert-FmpEqual -Name 'fixture Completa roda mesmo quando todo coletor interromperia a execucao' -Expected 0 -Actual $LASTEXITCODE
 Assert-FmpTrue -Name 'JSON interno gerado somente com pedido explicito' -Condition (Test-Path -LiteralPath (Join-Path $deniedOut 'diagnostic-internal.json'))

@@ -152,7 +152,7 @@ foreach ($pair in @(@('pt-BR', $htmlPt), @('en', $htmlEn))) {
 }
 Assert-FmpTrue -Name 'html lang acompanha o idioma' -Condition ($htmlPt -match '<html lang="pt-BR">' -and $htmlEn -match '<html lang="en">')
 Assert-FmpTrue -Name 'titulo identifica o relatorio e a execucao' -Condition ($htmlEn -match '<title>PC diagnostic report - FIX MY PC - fmp-demo-synthetic</title>')
-Assert-FmpTrue -Name 'EN e PT usam textos diferentes' -Condition ($htmlEn -match '<h2 id="summary-h">Executive summary</h2>' -and $htmlPt -match '<h2 id="summary-h">Resumo executivo</h2>' -and $htmlPt -notmatch '<h2 id="summary-h">Executive')
+Assert-FmpTrue -Name 'EN e PT usam textos diferentes' -Condition ($htmlEn -match '<h2 id="summary-h">Score, coverage and confidence</h2>' -and $htmlPt -match '<h2 id="summary-h">Pontua' -and $htmlPt -notmatch '<h2 id="summary-h">Score')
 
 # =====================================================================
 Start-FmpSuite 'V3. Imagens embutidas'
@@ -415,10 +415,11 @@ Assert-FmpEqual -Name 'todas as fixtures em PT-BR e EN renderizam sem chave falt
 # =====================================================================
 Start-FmpSuite 'V12. Identidade visual v2 (FMP-10): fontes, hashes, embutidos, tamanho, CSP e revisao de marca'
 # SHA-256 of the approved v2 sources (FIX-MY-PC-v2-assets.zip). Changing the art means changing this list on purpose.
+# Logo and banner: subtitle changed to "PC Diagnostic & Audit Skill" (docs/artwork-provenance.md, section 3).
 $v2Pins = [ordered]@{
-    'assets\branding\fixmypc-logo-v2.png'        = 'ce2ba790104d18a58e55996e49ce902fbee5cad26549439c742e9b435819b351'
+    'assets\branding\fixmypc-logo-v2.png'        = '659e9d276783c6396148b7b39bc9edc56574abefc5c11bbabd368869533bf434'
     'assets\branding\fixmypc-icon-v2.png'        = 'edd82d4738abb496b196add3b52d947ebeec99a2e9888c24b61727b558c23c72'
-    'assets\report\fixmypc-report-banner-v2.png' = '70b2b0a1dce3d7d7eefc454861c2d8bb68078a3edf46c9389a4ff67107a27663'
+    'assets\report\fixmypc-report-banner-v2.png' = '45c0010109da7b750d78c0e533f7f0807bb90ea40741e37e796d5942e8385608'
     'assets\report\fixmypc-overview-v2.png'      = '021f74bc0c30288a0344c914b47e53190b9700483b055d6d75d7846fd1274021'
     'assets\report\fixmypc-hardware-v2.png'      = 'bc8a36d59d354b64ff23843b6fd69e7e94856d7f0ce5a5cbcbff244300ce2121'
     'assets\report\fixmypc-findings-v2.png'      = 'c70099d1fc632ae03a4351e5d4b9d3538bf61f43d807e114a1f88e80a5b64ab4'
@@ -433,7 +434,10 @@ $retiredSha = @(
     '43ae816d34dd52e1d2ac1671746c84a013caa3bf857a9c200b40d2dc96a1682c', '99b604c6653d2d8275bec0362dcbfd5b7727c7773629c72238c2f4808affd4fc', 'd2ee9512d461a63a56b39b887618d4a86541a0eafaf3727d793ebe921a97f374',
     '55be2da96b8c644526b1577effa4da03c0ddb587464c76b77a7c3936e5745950', 'dae917ec066c3cd2b991fe5ef3ff00d462941b20f4dd1375366d699e895bb0fb', '65b604a0b41d76193b3b6237f507556b5cbb8c952a767cb355e0042bd4c810ee',
     '6a5f38eb42b50205e212555b72fd6a4fbe256c89b7df27ab101225cccb68ddea', '3bca4f5d1a5199866cef867012883a7bad98d389967e91db00dedc8c089c6c1e', '6ac432c3d0bab7f490d3ac6a374baa81d0f9d9000339e2aac8b9b4572ef2f09b',
-    'f3d88487983c0b5a191c50ef44da18be96f42b63b002d501d6a16019e9972521', '43e7b1853f7ce0eef96bdc134fc3ee6177f093a7a80f79aae2957e5e9e63b1a8', '3c429aefd135510e55a182fb206cbe817dbc86cdadfb32edec2c31084782932c'
+    'f3d88487983c0b5a191c50ef44da18be96f42b63b002d501d6a16019e9972521', '43e7b1853f7ce0eef96bdc134fc3ee6177f093a7a80f79aae2957e5e9e63b1a8', '3c429aefd135510e55a182fb206cbe817dbc86cdadfb32edec2c31084782932c',
+    # first v2 logo and banner ("Windows Diagnostic & Audit Skill" in the pixels): source, then embedded variant
+    'ce2ba790104d18a58e55996e49ce902fbee5cad26549439c742e9b435819b351', 'cebb9bfbc1f9401ad11fd9b0b487747aae5a547d9856ec276a276616c6a64d34',
+    '70b2b0a1dce3d7d7eefc454861c2d8bb68078a3edf46c9389a4ff67107a27663', '21aeec991bc2b094d8b508d16372c55ecfd806b60b2b84405cfd6b65161b640a'
 )
 foreach ($rel in $v2Pins.Keys) {
     $actual = ''
@@ -494,7 +498,9 @@ foreach ($k in $keys) {
 }
 $dist = (Read-FmpJsonFile -Path (Join-Path $root 'distribution-manifest.json')).Data
 $blockerIds = @($dist.releaseBlockers | ForEach-Object { $_.id })
-Assert-FmpTrue -Name 'FMP-10 e LICENSE-PENDING resolvidos: nao constam mais em releaseBlockers (revisao juridica continua)' -Condition (($blockerIds -notcontains 'FMP-10') -and ($blockerIds -notcontains 'LICENSE-PENDING') -and ($blockerIds -contains 'LEGAL-REVIEW'))
+$resolvedIds = @($dist.resolved | ForEach-Object { $_.id })
+# LEGAL-REVIEW closed by the owner on 2026-11-26 (docs/artwork-provenance.md); it must stay recorded as resolved.
+Assert-FmpTrue -Name 'FMP-10, LICENSE-PENDING e LEGAL-REVIEW resolvidos: fora de releaseBlockers, LEGAL-REVIEW registrado em resolved' -Condition (($blockerIds -notcontains 'FMP-10') -and ($blockerIds -notcontains 'LICENSE-PENDING') -and ($blockerIds -notcontains 'LEGAL-REVIEW') -and ($resolvedIds -contains 'LEGAL-REVIEW'))
 
 # =====================================================================
 Start-FmpSuite 'V13. Botao Imprimir / Salvar em PDF (Stage 10): texto, acessibilidade, script por hash, CSS'

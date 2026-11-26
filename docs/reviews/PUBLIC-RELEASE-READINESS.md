@@ -25,7 +25,7 @@ O NO-GO não decorre de falha de segurança aberta: não há P0 nem P1 abertos. 
 | 10 | Suítes offline passando | Atendido | Run 447/447 · Collector 85/85 · Visual 307/307 · ValidateOnly · Manifest |
 | 11 | Pacote limpo e verificável | Parcial | Cópia limpa OK (40 arquivos); falta checksum publicado e decisão de assinatura (A6) |
 | 12 | Compatibilidade sustentada por testes | Parcial | Uma execução real: Win11 Enterprise + PS 5.1, Modo Simples. README agora só afirma isso |
-| 13 | Licença e direitos definidos | **Parcial** | Licença escolhida (PolyForm Noncommercial 1.0.0, Etapa 11.1; A1 resolvido). Seguem abertos `LEGAL-REVIEW`, titularidade da arte v2, titular dos direitos autorais e linha `Required Notice:` (A2) |
+| 13 | Licença e direitos definidos | **Parcial** | Licença única: MIT, Copyright (c) 2026 Lucas Sehenth (migração MIT; substitui a PolyForm Noncommercial da Etapa 11.1; A1 resolvido). Seguem abertos `LEGAL-REVIEW`: direitos sobre a arte v2 e nome/marca (A2) |
 | 14 | Riscos residuais comunicados | Atendido | Audit §7, §10; este documento |
 | 15 | Auditoria independente final | **Não atendido** | Executor auditou o próprio código (A8) |
 
