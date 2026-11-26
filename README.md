@@ -56,7 +56,7 @@ audit or a substitute for professional diagnosis.
 | Item | State |
 |---|---|
 | Source code | Published in this repository under the MIT License |
-| Development | **FIX MY PC 2.0 complete** (Phases A, B and C), approved for **supervised personal use, with caveats** (tool version 0.1.0) |
+| Development | **FIX MY PC 2.0 complete** (Phases A, B and C), approved for **supervised personal use, with caveats** (tool version 0.2.0-preview) |
 | Simple mode | Validated in one supervised run on Windows 11 Enterprise with Windows PowerShell 5.1 |
 | Full mode (2.0) | Real `standard` and `deep` audits completed in a supervised Windows 11 VM with standard user permissions. Verdict **approved with caveats**. Physical-hardware validation is pending |
 | Windows 10, PowerShell 7 | Not validated and not supported |

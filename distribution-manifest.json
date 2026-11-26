@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "product": "FIX MY PC: PC Diagnostic & Audit Skill",
-  "version": "0.1.0",
+  "version": "0.2.0-preview",
   "status": "SOURCE PUBLISHED, PACKAGE NOT RELEASED - Source code is public on GitHub under MIT. 2.0 development is complete and approved for supervised personal use with caveats. No public release package (ZIP) yet: Full-mode validation on physical hardware and release checksums are pending. This manifest authorizes no real audit.",
   "note": "Every file in the repository must match exactly one group below. tools/Test-DistributionManifest.ps1 fails on unclassified files, on patterns that match nothing, and on forbidden names inside the runtime package. Patterns are relative, use '/' and '*' (which also crosses folders).",
   "runtime": [

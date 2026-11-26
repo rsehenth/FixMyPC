@@ -9,7 +9,7 @@
 # Write-FmpUtf8File / Write-FmpJsonFile (gated by Assert-FmpOutputPath).
 # =====================================================================
 
-$script:FmpToolVersion = '0.1.0'
+$script:FmpToolVersion = '0.2.0-preview'
 $script:FmpSchemaVersion = '1.0.0'
 $script:FmpMissingLocaleKeys = New-Object System.Collections.Generic.List[string]
 $script:FmpAllowedWriteRoots = New-Object System.Collections.Generic.List[string]

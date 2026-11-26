@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-preview - 2026-11-26 (personal package)
+
+Version identifier for the FIX MY PC 2.0 personal package, built from `main` after pull request #1. It includes every
+"Unreleased" entry below. Approved for supervised personal use, with caveats; this is not a public release.
+
+### Changed
+- Tool version `0.1.0` -> `0.2.0-preview`: `src/common/Common.ps1` (`FmpToolVersion`, shown in reports and written as
+  `run.toolVersion`), `fixmypc.ps1` header, `SKILL.md` (`metadata.version`), `distribution-manifest.json` (`version`) and the
+  status tables of both READMEs. The diagnosis line stays "FIX MY PC 2.0". The rule-set version in `rules/rules.json`
+  (`0.1.0`), the schema version (`1.0.0`), dated historical documents and the synthetic fixtures were not changed.
+
 ## Unreleased - artwork provenance and identity
 
 ### Added
