@@ -1,10 +1,124 @@
 # Changelog
 
+## Unreleased - artwork provenance and identity
+
+### Added
+- `docs/artwork-provenance.md` (runtime package): the C2PA evidence (ChatGPT `gpt-image`, no declared ingredient,
+  signatures not validated) and the owner's declaration of 2026-11-26 are recorded separately, along with OpenAI's
+  output terms, the limits on copyright in AI output, the per-image hash chain, the rights status and a preliminary
+  INPI / WIPO name search.
+- Artwork license: by the owner's decision, the nine v2 images and their derived copies are released under the MIT
+  License to the extent of the holder's rights. No exclusive rights are claimed, and the AI-generation credit and the
+  C2PA record are kept. MIT grants no trademark rights; the FIX MY PC name is kept, and the similar US registration
+  "FIX MY PC STORE" (8110109, Nice 37) is on record. The owner approved the edited banner and logo on 2026-11-26, and
+  `LEGAL-REVIEW` moved to `resolved` in `distribution-manifest.json` (the V12 check in `tests/Visual.Tests.ps1` now
+  requires it there). No professional legal review has taken place.
+- `docs/screenshots/readme-*.png`: three new README captures showing the new banner. The historical stage screenshots
+  were kept unchanged.
+
+### Changed
+- Product subtitle: "Windows Diagnostic & Audit Skill" became **"PC Diagnostic & Audit Skill"**. The banner and logo
+  sources had only that text line redrawn (Montserrat, same size, colour and position). Optimized variants, Base64 and
+  `assets/optimized/manifest.json` were regenerated; the other seven derivatives came out byte-identical.
+  `assets/brand-review.json` and the V12 pins in `tests/Visual.Tests.ps1` follow the new hashes, and the retired hashes
+  are blocked from returning. Labels updated in `locales/*.json` (`app.tagline`, `cli.banner.title`,
+  `report.brand.product`, `report.brand.bannerAlt`), `fixmypc.ps1`, `src/analysis/Evidence.ps1` (`run.tool`), `SKILL.md`,
+  `distribution-manifest.json`, `docs/homologation-plan.md` and the `tool` field of the test fixtures. "Windows" stays
+  only in compatibility statements. No diagnostic behaviour changed.
+- Samples: the banner and logo payloads and the subtitle text were replaced in place in `samples/*.html`,
+  `samples/visual/*.html` and the sample JSON files; nothing else in them changed.
+- `NOTICE.md`, `README.md`, `README.pt-BR.md`, `distribution-manifest.json`: record the artwork license, the name
+  decision and the owner's visual approval.
+
+## Unreleased - MIT license migration
+
+### Changed
+- License: the owner chose the **MIT License** (SPDX `MIT`) as the only license of the current version, with the notice
+  `Copyright (c) 2026 Lucas Sehenth`. `LICENSE` holds the standard MIT text; `SKILL.md` uses `license: MIT`;
+  `README.md`, `README.pt-BR.md` and `NOTICE.md` describe the MIT License and no longer carry noncommercial
+  restrictions or source-available wording. The PolyForm Noncommercial License 1.0.0 no longer applies to this version.
+- `NOTICE.md` names the copyright holder, keeps the Microsoft non-affiliation statement, and states that the MIT License
+  does not grant rights to the FIX MY PC name, logo or v2 artwork, whose rights remain unrecorded.
+- `distribution-manifest.json`: `LICENSE-CHOICE` now records the MIT decision. `LEGAL-REVIEW` stays open, narrowed to
+  artwork rights and naming / non-affiliation wording (the copyright holder is now set).
+
+## Unreleased - 2.0 diagnostic evolution (approved for supervised personal use, with caveats)
+
+Previously recorded (2026-11-25): Phases A, B and C were implemented. The consolidated regression recorded 1,481
+synthetic assertions with no failures. Supervised `standard` and `deep` audits in a Windows 11 virtual machine were
+approved with caveats for personal use. The read-only policy and mandatory per-run consent were preserved.
+Physical-hardware validation is pending (GPU, administrator run, `-IncidentAt`, port exhaustion and process cost).
+Public distribution remains blocked. See [NOTICE.md](NOTICE.md) and [distribution-manifest.json](distribution-manifest.json).
+
+Original note (before the virtual-machine homologation): not validated on real Windows machines; every new measurement was
+tested with synthetic fixtures and mocked providers only.
+
+### Fixed (virtual-machine homologation)
+- `service_hosts`: service names inside `svchost` were serialized as `{"Length":n}` in the JSON and shown as
+  `System.Collections.Specialized.OrderedDictionary` in the HTML. `Get-FmpServiceHostData` now casts the sorted names to
+  `[string[]]` (`src/collectors/Investigations.ps1`); 2 regression assertions in `tests/PhaseBC.Tests.ps1`.
+
+### Added
+- Symptom-oriented Full audit: `-Symptom general|boot|slow|crash`, `-ObserveSeconds 15-300` (default per symptom),
+  `-DuringProblem yes|no|unknown`. The symptom changes the observation window, the event history (30 days for crashes)
+  and the ranking of results.
+- Observation collector (`src/collectors/Observation.ps1`, Full audit): CPU, memory (available, commit, hard page
+  reads), physical disks (latency, queue, throughput) and per-process CPU/private memory over the window, computed from
+  raw CIM perf counter deltas (locale independent). Hard caps on window, interval, samples, disks and processes; time
+  budget; per-family states; query cost recorded.
+- Windows boot history (`Microsoft-Windows-Diagnostics-Performance/Operational` 100-109, read by field name) and
+  Kernel-Power 41 context (bugcheck / power button) in the Full audit. Access denied is reported, never elevated.
+- Deterministic diagnosis layer (`src/analysis/Diagnosis.ps1`, `diagnosis` in the JSON): eight questions with evidence
+  values, source, window, relevance, confidence, limitations and alternative explanations; up to three key findings;
+  conclusion `found|weak|none|insufficient`; safe next steps; list of what could not be verified. Thresholds and the
+  symptom relevance matrix in `rules/rules.json` (`diagnosis`).
+- `-Plan`: prints the chat authorization request (mode, language, goal, data read, duration estimate, folder, AI
+  processing, no repairs, exact command) with a one-run `-ConsentToken`; collects and writes nothing.
+- Report: "Investigation result" panel first (plain language; *what we observed / why it matters / what you can do*),
+  "Technical details" separator, "Measurements and history" panel. Console prints the same summary.
+- `tests/Diagnosis.Tests.ps1`, observation and boot-history suites in `tests/Collector.Tests.ps1`, four synthetic
+  fixtures (`diag-slow-use`, `diag-slow-boot`, `diag-crash-recurring`, `diag-healthy-full`).
+- **Phase A (synthetic validation at implementation):** per-process committed memory (`commitPrivateMB`), Working Set and private
+  Working Set as separate fields; I/O rates from counter deltas with PID-reuse, reset and missing-counter handling;
+  groups by executable name with simultaneous totals; closed System event catalog by provider + ID + level with log
+  retention; `-IncidentAt` / `-IncidentToleranceMinutes` bound to the consent token; incident timeline and time-correlated
+  pairs; findings now separate observed evidence, likely hypothesis and complementary evidence.
+- **Phases B and C (synthetic validation at implementation):** closed investigation catalog with deterministic selection,
+  two levels, time budgets and stop criteria; GPU driver events and engine/VRAM use; WER 1001 deduplicated by ReportId with
+  new vs re-sent failures; TCP counts by state and process with dynamic range and trend; services in top `svchost` hosts;
+  `HarddiskN` mapped to current disks; `-Depth standard|deep` bound to the consent token; hypothesis states
+  (`supported`, `not_supported`, `inconclusive`, `untested`). Covered by `tests/PhaseBC.Tests.ps1`.
+
+### Changed
+- **Scanner (Phases B/C):** new GPU and `MSFT_Net*` classes with a mandatory literal `-Property` allowlist, namespace
+  `root\StandardCimv2`, AMD/Intel/WER providers, and `Get-StorageReliabilityCounter` with `-PhysicalDisk` only.
+- **Scanner (Phase A):** `Get-WinEvent` accepts `ProviderName` (closed literal list, with `LogName`) and `-Oldest` (only
+  with `-MaxEvents 1` and a `LogName` filter); `TimeZoneInfo` local-time checks are allowed in `Common.ps1` only.
+- The report column formerly labeled "private memory" now says "private Working Set", which is what it always measured.
+- **Consent (migration):** a real run with `-AcceptReadOnlyPolicy` now also needs the `-ConsentToken` printed by `-Plan`
+  for exactly that run (scope-bound, 30 minutes, single use); otherwise exit code 3. Interactive terminal and fixture
+  runs are unchanged. `Test-FmpCollectionConsent` gained a `TokenState` parameter (default `missing`).
+- **Consent single use (Phase 0, gate blocker C1):** a real run now consumes its authorization before any collector:
+  it creates the approved output folder (private ACL) and an exclusive `run-reservation.json` (`New-FmpRunReservation`).
+  Replays after success, failure or interruption, and concurrent runs with the same token, end with exit 3 and collect
+  nothing. An interrupted real run leaves the folder with that file only. Fixture runs are unchanged.
+- The score is presented as secondary ("Score, coverage and confidence" section, after the result); its algorithm (2.0)
+  and JSON fields are unchanged.
+- `SKILL.md` and adapters: `/fixmypc audit` (Claude Code), `$fixmypc` (Codex), welcome text, Quick/Full choice, symptom
+  question, single chat confirmation, result explanation rules.
+- Scanner allowlist: four raw perf classes, the Diagnostics-Performance log, `ToXml()`, in-memory SHA-256 in Common.ps1.
+
+### Compatibility
+- `schemaVersion` stays `1.0.0`: `observation`, `diagnosis`, `run.symptom`, `run.duringProblem`, `run.observeSeconds`
+  and `events.bootPerformance`/`events.restartContext` are additive and optional; 1.0 documents still validate and render.
+- Phase A fields are additive. `privateMB` keeps its old meaning (private Working Set) and is deprecated in favor of
+  `workingSetPrivateMB`. Consent scopes without an incident time are byte-identical to the previous format.
+
 ## Unreleased - Stage 11.1: Git publication audit and documentation
 
 ### Changed
-- License: the owner chose the PolyForm Noncommercial License 1.0.0. `LICENSE` now holds the unmodified official text
-  (replacing the draft MIT text); `SKILL.md` uses `license: PolyForm-Noncommercial-1.0.0`; READMEs and `NOTICE.md`
+- License (historical, superseded by the MIT license migration above): the owner chose the PolyForm Noncommercial
+  License 1.0.0. `LICENSE` then held the unmodified official text (replacing the draft MIT text); `SKILL.md` uses `license: PolyForm-Noncommercial-1.0.0`; READMEs and `NOTICE.md`
   describe it as source-available (not OSI open source) and free for noncommercial use.
 - `NOTICE.md` records third-party components (none bundled) and separates ownership of the name, logo and v2 artwork
   from the software license; both remain open under `LEGAL-REVIEW`.

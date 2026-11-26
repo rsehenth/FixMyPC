@@ -199,3 +199,157 @@ da Microsoft.
 Um auxílio de revisão. Não é diagnóstico médico do hardware, garantia de
 funcionamento nem certificação de segurança. Toda decisão continua sendo do
 usuário, com o técnico ou a IA que ele escolher.
+
+## Diagnóstico orientado por sintoma (2.0, em desenvolvimento)
+
+A pontuação responde "as regras de saúde encontraram algo?". O diagnóstico 2.0 responde outra pergunta: "existem
+evidências relacionadas ao problema que a pessoa relatou?". Ele fica em `diagnosis` no JSON, é calculado por
+`src/analysis/Diagnosis.ps1` depois das regras e **não altera a pontuação** (`scoreAlgorithmVersion` continua `2.0`).
+
+### Modos e janelas
+
+| Modo | Observação ao longo do tempo | Histórico de eventos | Histórico de inicialização |
+|---|---|---|---|
+| Rápida (`simple`) | não; só a amostra de ~4 s do coletor de desempenho (confiança baixa) | 7 dias | não lido |
+| Completa (`full`) | `-ObserveSeconds` 15-300; padrão por sintoma: lento 60 s, geral 45 s, boot 30 s, travamento 30 s; uma leitura a cada 5 s; no máximo 61 leituras | 7 dias (30 dias para `crash`) | 60 dias, até 200 eventos |
+
+A observação roda **antes** dos coletores de inventário, para que a carga da própria auditoria não domine a medição.
+Ela tem orçamento de tempo (janela + 45 s): se os provedores ficarem lentos, para e marca `truncated`. Cada família
+(CPU, memória, disco, processos) tem estado próprio; uma falha no meio mantém as leituras anteriores e marca `error`
+ou `access_denied`, nunca `pass`. Ctrl+C cancela a execução; os resultados só são escritos no fim. Numa execução real, a
+pasta de saída e o arquivo `run-reservation.json` já existem desde antes da coleta (consumo único da autorização).
+
+### Fontes (somente leitura, todas na allowlist do scanner)
+
+| Pergunta | Fonte | Cálculo |
+|---|---|---|
+| CPU | `Win32_PerfRawData_PerfOS_Processor` (`_Total`) | `100 × (1 − Δidle / ΔTimestamp_Sys100NS)` por intervalo |
+| Processos | `Win32_PerfRawData_PerfProc_Process` (nome, PID, início, CPU, `WorkingSet`, `WorkingSetPrivate`, `PrivateBytes`, contadores de I/O) | núcleos = `ΔPercentProcessorTime / ΔTimestamp_Sys100NS`; % do computador = núcleos / processadores lógicos; I/O = `Δcontador / Δtempo real`; só nomes, sem linha de comando |
+| Memória | `Win32_PerfRawData_PerfOS_Memory` | disponível (inclui cache e espera), comprometida/limite, `PagesInputPersec` por diferença / `Frequency_PerfTime` |
+| Disco | `Win32_PerfRawData_PerfDisk_PhysicalDisk` (sem `_Total`, até 8 discos) | latência = `(ΔAvgDisksecPerRead / F) / ΔBase`; fila média = `ΔAvgDiskQueueLength / ΔSys100NS`; bytes/s por diferença |
+| Inicialização | log `Microsoft-Windows-Diagnostics-Performance/Operational`, IDs 100-109 | campos lidos **pelo nome** no XML do evento (`BootTime`, `MainPathBootTime`, `BootPostBootTime`, `BootIsDegradation`, `FriendlyName`, `DegradationTime`); só o nome do arquivo, nunca o caminho |
+| Reinícios | `System` Kernel-Power 41 (campos `BugcheckCode`, `PowerButtonTimestamp`), EventLog 6008, BugCheck/WER 1001, WHEA, SCM 7031/7034, Application Error 1000, Application Hang 1002 | contagem, dias distintos e último evento na janela |
+| Armazenamento (histórico/saúde) | regras existentes `storage.disk_event_errors`, `storage.disk_health_unhealthy`, `storage.smart_predict_failure` | reaproveitadas; SMART inacessível vira "parcialmente desconhecido" |
+
+As classes CIM brutas não dependem do idioma do Windows (os caminhos do `Get-Counter` dependem, por isso ele não é
+usado). As classes formatadas também foram evitadas: a primeira leitura delas pode voltar zerada.
+
+### Perguntas e limites (rules.json → `diagnosis.thresholds`)
+
+| Pergunta (`id`) | "Sim" | "Parcial" | Cuidados registrados |
+|---|---|---|---|
+| `cpu_load` | ≥ 85% em pelo menos 50% das leituras | pico ≥ 85% sem sustentação | carga legítima (atualização, compilação, jogo, antivírus); só vale para a janela |
+| `memory_pressure` | disponível < 1024 MB e < 10% **e** (paginação ≥ 100 páginas/s ou comprometimento ≥ 90%) | um desses sinais isolado | cache/espera contam como disponível; janela curta não demonstra vazamento |
+| `storage_busy` | fila média ≥ 1 | fila máxima ≥ 4 | ocupado não é defeito |
+| `storage_slow` | latência média ≥ 50 ms | média ≥ 20 ms ou p90 ≥ 50 ms | não há limite universal (NVMe, SATA, HD, disco virtual) |
+| `storage_errors` | regra de erros de disco com achado | - | evento histórico não prova falha atual |
+| `storage_health` | Windows/SMART informam falha | `partial_unknown` quando o SMART não pôde ser lido | é estado informado, não teste físico |
+| `boot_history` | ≥ 2 inicializações degradadas ou mediana até a área de trabalho ≥ 60 s | 1 degradada ou mediana ≥ 40 s | componente só é citado se o Windows o apontou em mais de um evento; a contagem de itens de inicialização não explica a demora |
+| `crash_history` | ≥ 2 reinícios inesperados em ≥ 2 dias, ou ≥ 2 telas azuis | qualquer evento isolado de instabilidade | Kernel-Power 41 não prova defeito de fonte; hipóteses: energia, botão, driver, temperatura |
+
+Cada pergunta recebe uma **relevância** para o sintoma (matriz `diagnosis.relevance`), uma **confiança** (dados da
+janela completa = alta; poucas leituras = média; leitura pontual = baixa), a **origem**, o **tipo de janela**
+(`observation`, `history`, `snapshot`, `none`), limitações e explicações alternativas. Correlação na mesma janela:
+quando há pressão de memória e o disco aparece ocupado ou lento, a hipótese "a paginação ocupa o disco" é registrada.
+
+### Achados principais e conclusão
+
+- Falhas de disco comprovadas pelas regras (`riskGate` crítico ou espaço crítico) entram sempre, mesmo fora do sintoma.
+- Depois, respostas "sim"/"parcial" por relevância; "parcial" de relevância baixa fica só nos detalhes. Máximo de três;
+  empates seguem a ordem fixa das perguntas. Nenhum achado é inventado quando não há evidência.
+- Conclusão: `found` (há "sim" de relevância alta), `weak` (só sinais parciais), `none` (perguntas relevantes
+  respondidas sem evidência) ou `insufficient` (menos de 50% das perguntas relevantes puderam ser respondidas).
+- Próximos passos são informativos e verificáveis (repetir a medição durante o problema, Monitor de Confiabilidade,
+  backup antes de qualquer providência, ferramenta do fabricante). Nunca há reparo automático.
+- Inventário (antivírus, aplicativos, serviços, dispositivos) não gera achado por existir.
+
+### Fase A: evidências por processo, eventos e horário do incidente
+
+**Memória.** `workingSetMB` é a memória residente, `workingSetPrivateMB` é a parte residente privada e `commitPrivateMB`
+(Private Bytes) é a memória privada comprometida. O campo legado `privateMB` continua sendo o Working Set privado e
+`topMemory` continua ordenado por ele; `topCommit` ordena por memória comprometida. Valor ausente ou zero em
+`PrivateBytes` vira `null`. Uma leitura alta nunca é chamada de vazamento.
+
+**I/O.** Taxas e operações por segundo usam a diferença dos contadores cumulativos sobre a duração real entre amostras.
+A identidade da instância é PID + início, então um PID reutilizado não mistura contadores. Contador reiniciado, ausente
+ou intervalo inválido descarta só aquele intervalo (`ioInvalidIntervals`). Os contadores incluem arquivos, rede e
+dispositivos, por isso a leitura é sempre de coincidência com disco ocupado, nunca de atribuição.
+
+**Agrupamento.** `appGroups` soma as instâncias vivas **em cada leitura**, por nome do executável sem o sufixo `#n`
+(`appGroupBasis = executable_name`). O pico é um total simultâneo real. O mesmo nome não prova o mesmo aplicativo, e os
+grupos não devem ser somados às linhas por processo.
+
+**Catálogo de eventos** (`events.catalog`, só na Auditoria Completa, canal `System`, 30 dias, até 60 com incidente
+antigo, até 300 registros por provedor). Cada entrada é um par provedor + ID com níveis próprios; guarda só horário e
+nível, nunca a mensagem.
+
+| Área | Provedor e ID | Níveis |
+|---|---|---|
+| Vídeo | `nvlddmkm` 153; `Display` 4101 | 1-3 |
+| Armazenamento | `disk` 7, 51, 153; `stornvme` 129; `storahci` 129; `Ntfs` 55; `Microsoft-Windows-Ntfs` 140 | 1-3 |
+| Rede | `Tcpip` 4231, 4266 | 1-3 |
+| Reinício inesperado | `Microsoft-Windows-Kernel-Power` 41; `EventLog` 6008 | 1-2; 2 |
+| Inicialização e desligamento | `Microsoft-Windows-Kernel-Power` 109; `EventLog` 6005, 6006; `User32` 1074; `Microsoft-Windows-Kernel-General` 12, 13 | 4 |
+| Relógio | `Microsoft-Windows-Kernel-General` 1, só com salto de 120 s ou mais | 4 |
+
+Cada provedor tem consulta própria porque filtrar por um provedor não registrado gera erro; ele fica como
+`provider_absent`, sem afetar os demais. A hora do registro mais antigo do log define `retention.coversWindow`: sem
+cobertura da janela, a ausência de eventos vira **inconclusivo**, nunca "não".
+
+**Horário do incidente.** `-IncidentAt` aceita `yyyy-MM-ddTHH:mm[:ss][Z|±hh:mm]`, `during-run` ou `unknown`, com
+`-IncidentToleranceMinutes` (1-720, padrão 30). O coletor não interpreta linguagem natural: é o agente que converte
+"ontem à noite" em horário e tolerância. Os dois valores entram no escopo do token de consentimento. Sem deslocamento,
+vale o fuso local com as regras históricas de horário de verão: hora inexistente é recusada e hora repetida amplia a
+busca em 60 minutos. A correlação é recusada (`unknown`) se o log não alcança o horário, se há evento com data futura
+ou se o relógio foi alterado perto do incidente.
+
+**Hipóteses.** Cada achado separa evidência observada, hipótese provável, evidência complementar, confiança, limitações
+e próxima ação segura. Os pares de `diagnosis.correlation.pairs` em `rules.json` indicam proximidade no tempo, nunca
+causa. Perguntas novas só existem quando seus dados foram coletados, e a pontuação não muda.
+
+### Fases B e C: investigações especializadas e adaptativas
+
+**Validado apenas por testes sintéticos.** Estas regras ainda aguardam a homologação supervisionada em VM.
+
+Depois da triagem, `Select-FmpInvestigations` decide de forma determinística o que roda, a partir de um catálogo fechado
+em `rules.json` (`diagnosis.investigations`). A execução é um `switch` de ids fixos; a IA não escolhe nem compõe consultas.
+
+| Investigação | Categoria | Gatilho | Fonte | O que nunca guarda |
+|---|---|---|---|---|
+| `gpu_events` | H | sintoma `crash` ou evento gráfico | `System`: `nvlddmkm`, `amdkmdag`, `amdkmdap`, `atikmdag`, `igfx`, `igfxn`, níveis 1-3 | mensagem |
+| `wer_events` | H | `crash`, evento gráfico ou histórico de falhas | `Application`, `Windows Error Reporting` 1001 | bucket, módulo, caminho, arquivos anexados, nome do aplicativo |
+| `net_ports` | N | Tcpip 4231/4266 | `MSFT_NetTCPConnection` (`State`, `OwningProcess`), `MSFT_NetUDPEndpoint`, faixas dinâmicas | endereços e portas de conexões |
+| `service_hosts` | P | `svchost` entre os maiores | `Win32_Service` (`Name`, `ProcessId`, `State`) | caminho e conta |
+| `gpu_use` | P | evento gráfico | contadores brutos `GPUEngine` e `GPUAdapterMemory` | identificador do adaptador |
+| `storage_reliability` | D | `crash` ou sinal de disco | `Get-StorageReliabilityCounter` | número de série |
+| `confirm_peak` | C | resposta parcial em CPU, memória ou latência | segunda janela de 30 s, até duas famílias | — |
+
+**Profundidade.** `standard` autoriza H, P e N, com até 45 s. `deep` acrescenta C e D, histórico de 60 dias e até 120 s
+(teto de 180 s). Ela entra no escopo do token: um token `standard` não autoriza `deep`.
+
+**Critérios de parada.** Cada id recebe uma decisão, no máximo dois níveis e dez execuções. Sem gatilho, categoria não
+autorizada ou falta de orçamento, o item é registrado e não roda. Uma fonte que falha não é repetida.
+
+**WER.** Uma falha é um `ReportId`. Registros seguintes do mesmo id são reenvios. Uma falha só é "nova" se o primeiro
+registro está nas últimas 48 h e a leitura não foi truncada; caso contrário é "indeterminada". O horário é o da gravação.
+
+**Discos.** O `N` de `\Device\HarddiskN` é comparado ao `Win32_DiskDrive.Index`. Só eventos desde a última inicialização
+são associados com segurança ao disco atual; número inexistente vira "dispositivo não existe mais".
+
+**Portas.** A ocupação é aproximada (conexões ativas sobre a faixa dinâmica). Três leituras indicam uma tendência
+momentânea e não preveem esgotamento. O dono atual nunca é apresentado como responsável por um episódio passado.
+
+**Hipóteses.** `supported` tem evidência coletada, `not_supported` teve fontes respondendo contra (não significa
+descartada), `inconclusive` tem dados que não discriminam e `untested` não pôde ser verificada. Nenhum estado afirma causa.
+
+### Limitações conhecidas do 2.0
+
+- Nenhuma medição foi homologada em Windows real; os limites são pontos de revisão iniciais e podem precisar de ajuste.
+- Os nomes de provedores AMD e Intel não foram confirmados em hardware real.
+- A Fase A foi validada só com dados sintéticos. IDs de provedores clássicos (`disk`, `Tcpip`, `Display`, `nvlddmkm`)
+  não constam em manifesto e dependem de validação em eventos reais.
+- O log de inicialização costuma exigir administrador; sem ele a pergunta de boot fica `access_denied`.
+- A janela observa só o período da auditoria; problemas intermitentes podem não aparecer. Por isso o sintoma "lento"
+  pergunta se o problema está acontecendo (`-DuringProblem`) e sugere repetir a medição.
+- Contadores de disco em máquinas virtuais, RAID ou Storage Spaces podem não refletir o disco físico.
+- As durações informadas no pedido de autorização são estimativas a partir dos tempos fixos do código, não medições.

@@ -17,6 +17,24 @@
         "tool": { "type": "string" },
         "toolVersion": { "type": "string" },
         "mode": { "enum": ["simple", "full"] },
+        "symptom": { "enum": ["general", "boot", "slow", "crash"], "description": "2.0 (optional): problem the person asked to investigate." },
+        "duringProblem": { "enum": ["yes", "no", "unknown"], "description": "2.0 (optional): whether the problem was happening during the measurement, as stated by the person." },
+        "observeSeconds": { "type": "integer", "minimum": 0, "maximum": 300, "description": "2.0 (optional): requested observation window; 0 in the Quick audit." },
+        "incident": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Phase A (optional): structured time of the reported problem. Absent when unknown.",
+          "properties": {
+            "kind": { "enum": ["unknown", "during_run", "at"] },
+            "input": { "type": "string" },
+            "atUtc": { "type": "string", "format": "date-time" },
+            "toleranceMinutes": { "type": "integer", "minimum": 1, "maximum": 720 },
+            "effectiveToleranceMinutes": { "type": "integer", "minimum": 1, "maximum": 780 },
+            "offsetKnown": { "type": "boolean" },
+            "ambiguousLocal": { "type": "boolean" }
+          }
+        },
+        "depth": { "enum": ["standard", "deep"], "description": "Phases B/C (optional, Full audit): how far complementary investigations were authorized." },
         "language": { "enum": ["pt-BR", "en"] },
         "synthetic": { "type": "boolean" },
         "startedAt": { "type": "string", "format": "date-time" },
@@ -70,6 +88,51 @@
       "additionalProperties": true,
       "properties": {
         "windowDays": { "type": "integer" },
+        "catalog": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Phase A, Full audit: closed diagnostic catalog of System events. Each entry is one provider + ID pair; occurrences hold only time and level, never message text.",
+          "properties": {
+            "version": { "type": "string" },
+            "state": { "enum": ["pass", "unknown", "error"] },
+            "channel": { "const": "System" },
+            "windowDays": { "type": "integer", "minimum": 1, "maximum": 60 },
+            "since": { "type": "string", "format": "date-time" },
+            "maxPerProvider": { "type": "integer", "minimum": 1, "maximum": 500 },
+            "anyTruncated": { "type": "boolean" },
+            "retention": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "status": { "enum": ["ok", "empty", "access_denied", "unsupported", "error"] },
+                "oldestAt": { "type": ["string", "null"], "format": "date-time" },
+                "coversWindow": { "type": ["boolean", "null"] }
+              }
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["key", "provider", "eventId", "family", "status", "count"],
+                "properties": {
+                  "key": { "type": "string" },
+                  "provider": { "type": "string" },
+                  "eventId": { "type": "integer" },
+                  "family": { "enum": ["graphics", "storage", "network", "lifecycle", "clock"] },
+                  "meaning": { "type": "string" },
+                  "status": { "enum": ["ok", "empty", "provider_absent", "access_denied", "unsupported", "error"] },
+                  "count": { "type": "integer", "minimum": 0 },
+                  "truncated": { "type": "boolean" },
+                  "distinctDays": { "type": "integer", "minimum": 0 },
+                  "firstSeen": { "type": ["string", "null"], "format": "date-time" },
+                  "lastSeen": { "type": ["string", "null"], "format": "date-time" },
+                  "occurrences": { "type": "array", "maxItems": 60, "items": { "type": "object", "additionalProperties": true } }
+                }
+              }
+            }
+          }
+        },
         "logs": {
           "type": "object",
           "additionalProperties": {
@@ -169,6 +232,123 @@
             }
           }
         }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "2.0, Full audit only: CPU, memory, physical disk and per-process figures computed from raw CIM perf counter deltas over a bounded window. Process names only. Each family has a state (pass/unknown/access_denied/unsupported/error).",
+      "properties": {
+        "requestedSec": { "type": "integer" },
+        "intervalSec": { "type": "integer" },
+        "actualSec": { "type": ["number", "null"] },
+        "intervals": { "type": "integer" },
+        "truncated": { "type": "boolean" },
+        "cpu": { "type": "object", "additionalProperties": true },
+        "memory": { "type": "object", "additionalProperties": true },
+        "disks": { "type": "object", "additionalProperties": true },
+        "processes": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "privateMB is the legacy name of the private WORKING SET (resident) and keeps that meaning; workingSetPrivateMB is the same value under its explicit name. commitPrivateMB is Private Bytes (committed). Read/write rates are deltas over the observed window and include file, network and device I/O. appGroups group by executable name, which does not prove one application; never add them to the per-process rows.",
+          "properties": {
+            "topCommit": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+            "topIo": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+            "appGroups": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+            "appGroupBasis": { "const": "executable_name" },
+            "exitedDuringWindow": { "type": "integer", "minimum": 0 },
+            "ioInvalidIntervals": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "cost": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "diagnosis": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "2.0: deterministic symptom-oriented questions (src/analysis/Diagnosis.ps1). Never changes healthScore and never asserts a cause.",
+      "required": ["version", "symptom", "conclusion", "questions", "keyFindings"],
+      "properties": {
+        "version": { "type": "string" },
+        "symptom": { "enum": ["general", "boot", "slow", "crash"] },
+        "conclusion": { "enum": ["found", "weak", "none", "insufficient"] },
+        "coveragePct": { "type": ["number", "null"] },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id", "answer", "relevance", "confidence", "source", "window"],
+            "properties": {
+              "id": { "enum": ["cpu_load", "memory_pressure", "storage_busy", "storage_slow", "storage_errors", "storage_health", "boot_history", "crash_history", "process_commit", "process_io", "graphics_events", "storage_signals", "network_ports", "incident_correlation", "graphics_timeout", "wer_failures", "ports_current", "storage_device"] },
+              "answer": { "enum": ["yes", "partial", "no", "unknown", "not_collected", "access_denied", "unsupported", "error", "partial_unknown"] },
+              "relevance": { "enum": ["high", "medium", "low"] },
+              "confidence": { "enum": ["high", "medium", "low"] },
+              "window": { "enum": ["observation", "history", "snapshot", "none"] }
+            }
+          }
+        },
+        "keyFindings": { "type": "array", "maxItems": 3, "items": { "type": "object", "additionalProperties": true } },
+        "nextSteps": { "type": "array", "items": { "type": "string" } },
+        "notVerified": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "incident": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Phase A (optional): the reported time against the event catalog. reliability says whether the clock and log retention allow the comparison.",
+          "properties": {
+            "kind": { "enum": ["at", "during_run"] },
+            "reliability": { "enum": ["ok", "no_catalog", "after_run", "clock_future", "clock_step", "retention_unknown", "before_retention", "partial_retention"] },
+            "nearCount": { "type": "integer", "minimum": 0 },
+            "nearFaults": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "timeline": { "type": "array", "maxItems": 150, "items": { "type": "object", "additionalProperties": true } },
+        "correlations": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "storageMap": { "type": "array", "description": "Phase B: \\Device\\HarddiskN from disk events against the current disks.", "items": { "type": "object", "additionalProperties": true, "properties": { "diskNumber": { "type": "integer" }, "mapping": { "enum": ["current_boot", "earlier_boot", "device_absent"] } } } },
+        "hypotheses": {
+          "type": "array",
+          "description": "Phase C: closed hypothesis catalog. untested means it could not be checked and must never be read as likely; not_supported is not the same as ruled out.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id", "state", "confidence"],
+            "properties": {
+              "id": { "enum": ["graphics_driver_instability", "application_failures", "storage_path_instability", "disk_saturation", "memory_pressure", "cpu_saturation", "port_exhaustion_active", "port_exhaustion_history", "hardware_error_reported"] },
+              "state": { "enum": ["supported", "not_supported", "inconclusive", "untested"] },
+              "confidence": { "enum": ["high", "medium", "low"] }
+            }
+          }
+        }
+      }
+    },
+    "investigations": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Phases B/C, Full audit: closed catalog of complementary read-only investigations. Each run records why it ran or did not. No address, connection port, command line, path, WER bucket, module or event message is kept.",
+      "properties": {
+        "version": { "type": "string" },
+        "depth": { "enum": ["standard", "deep"] },
+        "categories": { "type": "array", "items": { "enum": ["H", "P", "N", "C", "D"] } },
+        "budgetMs": { "type": "integer", "minimum": 0, "maximum": 180000 },
+        "elapsedMs": { "type": "integer", "minimum": 0 },
+        "budgetExceeded": { "type": "boolean" },
+        "runs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id", "level", "category", "state"],
+            "properties": {
+              "id": { "enum": ["gpu_events", "wer_events", "net_ports", "service_hosts", "gpu_use", "storage_reliability", "confirm_peak"] },
+              "level": { "enum": [1, 2] },
+              "category": { "enum": ["H", "P", "N", "C", "D"] },
+              "state": { "enum": ["ok", "empty", "not_triggered", "not_authorized", "budget", "limit", "access_denied", "unsupported", "error"] },
+              "elapsedMs": { "type": "integer", "minimum": 0 },
+              "truncated": { "type": "boolean" }
+            }
+          }
+        },
+        "results": { "type": "object", "additionalProperties": true }
       }
     },
     "advanced": {

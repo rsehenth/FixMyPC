@@ -2,17 +2,19 @@
 
 **English** · [Português (Brasil)](README.pt-BR.md)
 
-> **Status: Still in Development — Functional Preview.**
-> Free for noncommercial use under the [PolyForm Noncommercial License 1.0.0](LICENSE).
-> Source-available, not OSI-approved open source. No public release has been approved yet.
+> **Status**
+> - **Source code:** available in this repository under the [MIT License](LICENSE). Copyright (c) 2026 Lucas Sehenth.
+> - **FIX MY PC 2.0:** development complete and approved for **supervised personal use, with caveats**.
+> - **Packaged release (ZIP):** not released yet. Full-mode validation on physical hardware and release checksums are pending.
 
 FIX MY PC is a read-only diagnostic tool for Windows. It runs real local checks,
 applies a deterministic rule set and produces an offline HTML report and a
 sanitized JSON file. It never repairs, cleans or changes the computer.
 
-The tool already works for supervised personal use in **Simple mode**. It is
-still in development, in compatibility validation and in release preparation,
-so treat every result as a review aid and expect rough edges.
+FIX MY PC 2.0 adds advanced Windows diagnostics in **Full mode**. Its
+`standard` and `deep` audits were approved with caveats in a supervised
+Windows 11 VM. That approval covers supervised personal use only; no packaged
+public release exists yet.
 
 ## Contents
 
@@ -53,26 +55,28 @@ audit or a substitute for professional diagnosis.
 
 | Item | State |
 |---|---|
-| Release stage | **Still in Development — Functional Preview** (version 0.1.0) |
+| Source code | Published in this repository under the MIT License |
+| Development | **FIX MY PC 2.0 complete** (Phases A, B and C), approved for **supervised personal use, with caveats** (tool version 0.1.0) |
 | Simple mode | Validated in one supervised run on Windows 11 Enterprise with Windows PowerShell 5.1 |
-| Full mode | Implemented and covered by synthetic tests. **Not yet validated on real hardware** |
+| Full mode (2.0) | Real `standard` and `deep` audits completed in a supervised Windows 11 VM with standard user permissions. Verdict **approved with caveats**. Physical-hardware validation is pending |
 | Windows 10, PowerShell 7 | Not validated and not supported |
-| Public release | **Not approved.** Open items: legal review, hardware and virtual-machine validation, published checksums |
+| Packaged release (ZIP) | **Not released.** Pending: Full-mode validation on physical hardware and checksums for the release package. The artwork and naming review (`LEGAL-REVIEW`) was closed by the owner on 2026-11-26; it was not a professional legal review |
 
-Open release items are tracked in
-[`distribution-manifest.json`](distribution-manifest.json),
-[`docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md`](docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md)
-and [`NOTICE.md`](NOTICE.md).
+Current release items are in [`distribution-manifest.json`](distribution-manifest.json)
+and [`NOTICE.md`](NOTICE.md). The documents in `docs/reviews/` are dated
+records of earlier stages, such as
+[`PUBLIC-RELEASE-REMEDIATION-PLAN.md`](docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md)
+(2026-11-21). They document past decisions; they are not current assessments.
 
 ## Key features
 
 - **Strictly read-only.** An AST-based static analyzer checks the source against
   command, parameter and member allowlists before the application modules load.
   No repairs, no elevation, no network access.
-- **Explicit consent before any collection**, with the output folder and policy
-  shown first.
-- **Six collectors** (system, events, startup, performance, storage, advanced)
-  and a **deterministic engine of 22 rules**.
+- **Explicit consent is required for each real run.** The tool shows the
+  read-only policy and output folder before asking.
+- **Deterministic diagnostic engine with 22 base rules** and symptom-oriented
+  Full audits with time-bounded observations and adaptive investigations.
 - **Explainable 0–100 score**, with diagnostic **risk**, **coverage** and
   **confidence** reported separately.
 - **Seven check states** (`pass`, `finding`, `unknown`, `unsupported`,
@@ -92,8 +96,9 @@ Consent  →  Read-only collection  →  Deterministic analysis  →  HTML + JSO
 1. **Consent.** The tool explains the read-only policy, shows where files will
    be written and asks for your confirmation.
 2. **Collection.** The collectors read local Windows information (CIM, event
-   logs, registry, scheduled tasks and similar sources). Nothing is installed,
-   changed or sent anywhere.
+   logs, registry, scheduled tasks and similar sources). In Full mode, the
+   symptom, evidence and approved depth determine which additional passive
+   checks run. Nothing is installed, changed or sent anywhere.
 3. **Analysis.** The rules in [`rules/rules.json`](rules/rules.json) turn the
    evidence into findings, a score, a risk level, coverage and confidence. There
    is no AI and no network call in this step.
@@ -106,10 +111,11 @@ Consent  →  Read-only collection  →  Deterministic analysis  →  HTML + JSO
 |---|---|
 | System | Operating-system and hardware information, uptime, lifecycle information from a built-in snapshot |
 | Events | System and Application logs (Error and Critical, last 7 days): recurring critical events, error concentration, WHEA hardware errors, unexpected shutdowns, bug checks |
-| Performance | Short CPU, memory and commit samples, taken once during the run |
+| Performance | Short CPU, memory and commit samples. Full mode adds a time-bounded observation of CPU, memory, disks and processes |
 | Startup | Run/RunOnce entries, Startup folders, logon scheduled tasks and automatic services, listed but never executed |
 | Storage | Free space, disk health as reported by Windows, SMART failure-prediction status, storage error events |
 | Advanced (Full mode only) | Devices with problem codes, Windows Defender status, installed apps from passive registry sources, pending-reboot indicators, hotfix recency, Security events when accessible |
+| Adaptive investigations (Full mode only) | GPU driver events, GPU engine and VRAM usage, deduplicated Windows Error Reporting, TCP port usage, services within `svchost`, disk-event mapping and storage reliability when triggered, authorized and supported |
 
 The 22 rules, their thresholds and penalties are documented in
 [`docs/methodology.md`](docs/methodology.md).
@@ -146,12 +152,14 @@ The 22 rules, their thresholds and penalties are documented in
 
 - **Local execution.** The script collects and analyzes on your computer. It has
   no network access by design and does not send reports anywhere.
-- **Read-only policy.** The only writes are the report files inside the output
-  folder you authorize. See [`docs/readonly-policy.md`](docs/readonly-policy.md)
-  for the enforcement layers and their honest limits.
-- **Explicit consent.** Collection does not start without it. The
-  `-AcceptReadOnlyPolicy` flag is a declaration by whoever writes the command
-  line; it does not prove a human agreed.
+- **Read-only policy.** Writes are limited to the authorized output folder,
+  which contains the reports and, for real runs, `run-reservation.json`.
+  See [`docs/readonly-policy.md`](docs/readonly-policy.md)
+  for the enforcement layers and their limits.
+- **Explicit consent.** Each real run requires confirmation in the terminal
+  or explicit approval of the exact command printed by `-Plan`.
+  Non-interactive collection requires `-AcceptReadOnlyPolicy` and the
+  matching one-use `-ConsentToken`.
 - **Restricted output folder.** The tool creates the folder itself with
   permissions limited to your account and SYSTEM and without inheritance from
   the parent. It refuses existing folders, reparse points and network paths, and
@@ -185,9 +193,10 @@ Windows 10 and PowerShell 7 (`pwsh`) are not validated and not supported.
 
 ## Getting started
 
-There is no public release or download yet. If you received a copy from the
-project owner, extract it to a folder you control and run these commands from
-that folder in Windows PowerShell 5.1.
+No packaged public release (ZIP) exists yet. The source code in this
+repository can be used from a clone or download, within the status and limits
+described in [Project status](#project-status). Put it in a folder you control
+and run these commands from that folder in Windows PowerShell 5.1.
 
 Interactive run (explains the policy, then asks language, mode and consent):
 
@@ -195,15 +204,18 @@ Interactive run (explains the policy, then asks language, mode and consent):
 powershell -NoProfile -File .\fixmypc.ps1
 ```
 
-Non-interactive run. `-OutDir` must be an absolute local path that **does not
-exist yet**; the tool creates it. Add `-AcceptReadOnlyPolicy` only if you
-yourself confirm the read-only policy for this run:
+For a non-interactive run, generate a plan first. `-OutDir` must be an absolute
+local path to a new folder. The tool creates it when the authorized run starts.
 
 ```powershell
-powershell -NoProfile -File .\fixmypc.ps1 `
+powershell -NoProfile -NonInteractive -File .\fixmypc.ps1 -Plan `
   -Mode simple -Language en `
-  -OutDir "$env:LOCALAPPDATA\FixMyPC\audit-1" -AcceptReadOnlyPolicy
+  -OutDir "$env:LOCALAPPDATA\FixMyPC\audit-1"
 ```
+
+Review the policy and scope in the plan. After explicit consent for this run,
+execute the exact command printed by `-Plan`, which includes
+`-AcceptReadOnlyPolicy` and the matching `-ConsentToken`.
 
 Without `-OutDir`, the report goes to a new folder under `%LOCALAPPDATA%\FixMyPC`.
 
@@ -235,11 +247,37 @@ them, the report folders you created. Nothing else is installed.
 
 | Mode | What runs | Validation |
 |---|---|---|
-| `simple` | System, events, startup, performance, storage | Validated in one supervised run on Windows 11 Enterprise, standard user, PowerShell 5.1 |
-| `full` | Simple mode plus devices, Defender, installed apps, pending-reboot indicators, hotfix recency and Security events when accessible | Implemented and tested with synthetic data only. Not validated on real hardware |
+| `simple` (Quick audit) | System, events, startup, a ~4 s performance sample, storage | Validated in one supervised run on Windows 11 Enterprise, standard user, PowerShell 5.1 (before 2.0) |
+| `full` (Full audit) | Quick audit plus an observation window of CPU, memory, disks and processes (default 60 s for slowness), Windows boot history, stability events (30 days for crashes), devices, Defender, installed apps, pending-reboot indicators, hotfix recency and Security events when accessible | Approved with caveats after supervised `standard` and `deep` runs in a Windows 11 VM. Physical-hardware validation is pending |
 
-"Implemented" means the code exists and passes synthetic tests. "Validated"
-means it was run on a real machine under supervision.
+### Symptom-oriented investigation (2.0)
+
+The Full audit asks which problem to investigate (`-Symptom boot|slow|crash|general`). The answer changes the
+observation window, the event history read and how results are ranked. A deterministic layer
+(`src/analysis/Diagnosis.ps1`) answers fixed questions - did the CPU stay saturated, was memory under pressure with
+paging, was a disk busy or slow to respond, did Windows record degraded boots, are unexpected restarts recurring - and
+records for each answer the evidence values, source, window, relevance to the symptom, confidence, limitations and
+alternative explanations. It never asserts a cause and never turns missing data into "healthy". The report opens with
+the result in plain language (up to three key findings, each with *what we observed*, *why it matters* and *what you
+can do*); the 0-100 score moves after it as a secondary figure. See [`docs/methodology.md`](docs/methodology.md).
+
+**Phase A** distinguishes Private Bytes (private committed memory), Working Set and private Working Set. It
+measures recent I/O per process, groups usage by executable and reads a fixed catalog of System events by provider
+and ID. The incident timeline can use `-IncidentAt` and `-IncidentToleranceMinutes` to flag nearby evidence for review.
+
+**Phase B** adds GPU driver event, engine and VRAM analysis, deduplicates Windows Error Reporting events,
+counts TCP connections by state and process against the dynamic port range, lists services in selected `svchost`
+processes and maps recent storage events to current disks where possible. Network checks use local sources and
+omit connection addresses and port numbers.
+
+**Phase C** selects complementary checks from a fixed catalog using the symptom and initial evidence. Each depth
+has a time budget and stop criteria. `standard` is the default. With consent for `-Depth deep`, the audit can read
+more event history and, when triggered, check storage reliability or take a second sample to confirm a peak.
+The report records which hypotheses the evidence supports and which checks were inconclusive or unavailable.
+
+Observation uses raw CIM performance classes (locale independent) and computes rates from deltas; it never writes,
+benchmarks or stresses the disk. The Windows boot performance log usually needs administrator rights: without them the
+report says "not verified" and the tool does not elevate.
 
 ## Using it as an agent skill
 
@@ -250,10 +288,28 @@ adapters: [`adapters/claude/README.md`](adapters/claude/README.md),
 forbids changing the computer, inventing collection commands or bypassing
 consent.
 
+Invocation: `/fixmypc audit` in Claude Code, `$fixmypc` (plus `audit` or a
+description) in Codex. The agent welcomes the person, offers the Quick or Full
+audit, asks the symptom, then runs `fixmypc.ps1 -Plan ...`, which collects
+nothing and prints the authorization request: mode, language, goal, data read,
+duration estimate, output folder, AI processing, "no repairs" and the exact
+command with a one-run `-ConsentToken`. The person answers once, in the chat;
+the agent then runs exactly that command.
+
 **`-AcceptReadOnlyPolicy` does not prove that a human authorized the run.** An
-agent can add it without asking. Consent must be requested from the person for
-every real run (exact command, mode, language and output folder), never reused,
-and never stored in a script, hook or standing permission. See
+agent can add it without asking. Non-interactive real runs require the
+`-ConsentToken` printed by `-Plan` for that exact run. The token
+binds the scope, including mode, symptom, language, observation window, incident
+settings, depth and output folder, for 30 minutes. An exclusive
+`run-reservation.json` consumes the authorization before collection and blocks
+repeat or concurrent use.
+Consent must be requested from the person for every real run, never reused,
+and never stored in a script, hook or standing permission.
+
+*Migration:* agent instructions written for 0.1.0 (`-AcceptReadOnlyPolicy`
+alone) now end with exit code 3. Use `-Plan`, show its output, and run the
+printed command after an explicit answer. Interactive terminal runs and fixture
+runs are unchanged. See
 [Privacy and security](#privacy-and-security) for what the agent's AI service
 receives.
 
@@ -265,22 +321,32 @@ receives.
   example the Security log). They are reported as `access_denied` and lower
   coverage and confidence; they do not lower the score.
 - **Windows queries can be slow or block.** Event log and scheduled-task queries
-  have no built-in timeout. If a run hangs, press Ctrl+C; nothing is written
-  before the final report phase.
+  have no built-in timeout. If a run hangs, press Ctrl+C; results are only
+  written in the final report phase (a real run leaves just its
+  `run-reservation.json`, and its authorization is used up).
 - **A clean report is not a guarantee.** Rules are conservative and sample a
   point in time; absence of findings does not prove absence of problems.
 - **Limited compatibility.** Only the environment under
-  [Requirements](#requirements) has been exercised, and only Simple mode on real
-  hardware.
+  [Requirements](#requirements) has been exercised. Full mode has only been exercised in a supervised VM.
+  GPU and VRAM counters, real TCP port exhaustion and administrator-only paths
+  remain unverified. Incident-time correlation was covered only with synthetic data.
 - **Smaller known gaps:** shortcut (`.lnk`) startup targets are not resolved;
   Authenticode verification is not collected; Windows lifecycle dates come from
   a built-in snapshot that can become outdated; pending Windows Update scans are
   deliberately not run.
-- **Still in development.** Interfaces, rules and report layout may change.
+- **Threshold calibration is pending.** VM measurements come from virtual
+  hardware. The diagnostic thresholds are initial review points.
 
 ## Development and validation
 
-Last recorded results (Stage 11, synthetic and offline):
+**2.0 (previously recorded):** the consolidated regression of Phases A, B and C recorded **1,481 synthetic assertions and no failures**.
+The `svchost` service-name fix added two regression assertions (`PhaseBC.Tests.ps1`, 213 assertions, no failures).
+Supervised `standard` and `deep` audits in a Windows 11 VM were **approved with caveats for personal use**, with mandatory
+per-run consent and the read-only policy preserved. Pending validation includes dedicated-GPU providers and counters
+(NVIDIA, AMD, Intel), an administrator run, `-IncidentAt` correlation with real events, TCP port exhaustion, measurement
+of the tool's CPU and memory cost, threshold calibration and confirmation of service names in a real report after the fix.
+
+Earlier recorded results (Stage 11, before 2.0, synthetic and offline):
 
 | Suite | Result |
 |---|---|
@@ -290,13 +356,12 @@ Last recorded results (Stage 11, synthetic and offline):
 | `-ValidateOnly` | pass |
 | Distribution manifest check | pass |
 
-These suites use synthetic fixtures and isolated mocks. They verify the code and
-the report, **not** behavior on real hardware, and are not a hardware
-homologation. The only real-hardware evidence so far is one supervised Simple
-mode run on a single Windows 11 Enterprise machine. Full mode, other Windows
-editions and versions, virtual-machine homologation and corporate policies
-(AppLocker, WDAC, Constrained Language Mode) are still pending; see
-[`docs/homologation-plan.md`](docs/homologation-plan.md).
+These suites use synthetic fixtures and isolated mocks to verify the code and
+the report. Physical-hardware evidence so far comes from one supervised Simple
+mode run on Windows 11 Enterprise. Full mode has separate VM evidence.
+Validation of Full mode on physical hardware, other Windows editions and
+versions, and corporate policies (AppLocker, WDAC, Constrained Language Mode)
+is still pending. See [`docs/homologation-plan.md`](docs/homologation-plan.md).
 
 ```powershell
 powershell -NoProfile -File .\tests\Run.Tests.ps1
@@ -310,9 +375,9 @@ powershell -NoProfile -File .\tools\Test-DistributionManifest.ps1
 Both images show a **synthetic demonstration report**: every value is fictional
 and no real computer is described.
 
-![Synthetic demonstration report with a critical storage finding, desktop width](docs/screenshots/stage71-final-critical-en-1440.png)
+![Synthetic demonstration report with a critical storage finding, desktop width](docs/screenshots/readme-critical-en-1440.png)
 
-![Synthetic demonstration report at tablet width, showing the Print / Save as PDF button](docs/screenshots/stage10-print-btn-en-768.png)
+![Synthetic demonstration report at tablet width, showing the Print / Save as PDF button](docs/screenshots/readme-print-en-768.png)
 
 More synthetic examples are in [`samples/`](samples/).
 
@@ -331,19 +396,16 @@ The technical documents in `docs/` are currently written in Portuguese (Brazil).
 
 ## License
 
-FIX MY PC is licensed under the
-[PolyForm Noncommercial License 1.0.0](LICENSE). In short: you may use, study,
-modify and redistribute it for noncommercial purposes at no cost. Commercial use
-is not granted and needs separate written permission from the project owner. The
-license text in [`LICENSE`](LICENSE) is the only binding statement.
+FIX MY PC is licensed under the [MIT License](LICENSE) (SPDX: `MIT`).
+Copyright (c) 2026 Lucas Sehenth. The license text in [`LICENSE`](LICENSE) is
+the only binding statement.
 
-This is a source-available license; it is **not** an OSI-approved open source
-license.
-
-The license covers the software. The FIX MY PC name, logo and v2 artwork are
-handled separately: their ownership is not yet recorded and the product name is
-awaiting legal review. See [`NOTICE.md`](NOTICE.md). A public release stays
-blocked until those items are resolved.
+The v2 artwork was generated with ChatGPT for this project. It is released
+under the same MIT License, to the extent of the rights the holder has; images
+made by AI may carry no copyright at all, so no exclusive rights are claimed.
+The MIT License grants no trademark rights: the FIX MY PC name is not licensed.
+See [`NOTICE.md`](NOTICE.md) and
+[`docs/artwork-provenance.md`](docs/artwork-provenance.md).
 
 ## Trademarks and non-affiliation
 
@@ -358,4 +420,4 @@ anything. Results need proper interpretation: use the recommended human check
 listed with each finding and consult a qualified technician for decisions about
 your hardware, data or security. The score is a review aid, not a hardware
 diagnosis, a warranty or a security certification. The software is provided
-under the terms of the license, including its "No Liability" clause.
+under the terms of the MIT License, "as is" and without warranty.

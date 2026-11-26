@@ -2,7 +2,7 @@
     "schemaVersion":  "1.0.0",
     "run":  {
                 "id":  "fmp-30e8b1bbcc",
-                "tool":  "FIX MY PC: Windows Diagnostic \u0026 Audit Skill",
+                "tool":  "FIX MY PC: PC Diagnostic \u0026 Audit Skill",
                 "toolVersion":  "0.1.0",
                 "mode":  "full",
                 "language":  "pt-BR",

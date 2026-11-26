@@ -782,6 +782,16 @@ Assert-FmpTrue -Name 'E2E HTML renders truncated event count as 5+' -Condition (
 Assert-FmpTrue -Name 'E2E HTML renders localized gpu_ram_uint32 limitation, never the key (FMP-04)' -Condition ($htmlFull -match 'VRAM acima de 4 GB' -and $htmlFull -notmatch 'gpu_ram_uint32' -and $htmlFull -notmatch 'OrderedDictionary')
 Assert-FmpTrue -Name 'E2E HTML renders Build label cleanly' -Condition ($htmlFull -match 'Compila&#231;&#227;o / build|Compilação / build')
 
+# Regression (VM-06): Sort-Object returns PSObject-wrapped numbers, which were scrubbed into {} by the sanitizer.
+$sanStatWrapped = @([double]13.2, [double]9.4, [double]11.9) | Sort-Object
+$sanStatProbe = [ordered]@{ observation = [ordered]@{ cpu = [ordered]@{
+    stats = [ordered]@{ count = 3; avg = [double]11.5; min = $sanStatWrapped[0]; max = $sanStatWrapped[2]; p90 = $sanStatWrapped[2] } } } }
+$sanStatOut = (ConvertTo-FmpSanitizedDiagnostic -Diagnostic $sanStatProbe).observation.cpu.stats
+Assert-FmpTrue -Name 'Sanitizer keeps scalar stats numeric (min/max/p90 not {})' -Condition (
+    $sanStatOut.min -is [double] -and $sanStatOut.max -is [double] -and $sanStatOut.p90 -is [double] -and
+    $sanStatOut.min -eq 9.4 -and $sanStatOut.max -eq 13.2 -and $sanStatOut.p90 -eq 13.2)
+
+
 # Volume / stress test: 2000 events x 2 logs + 300 startup + 300 apps + 200 processes
 $stressEventsMock = @'
 function Get-Date { return [DateTime]::new(2026, 11, 20, 12, 0, 0, [DateTimeKind]::Utc) }
@@ -823,6 +833,203 @@ finally {
     Remove-Item -LiteralPath $concDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 Assert-FmpTrue -Name 'Concurrent write on exclusively opened file is blocked' -Condition $concurrentBlocked
+
+# =====================================================================
+Start-FmpSuite '8. Observation collector (2.0): raw-counter math, bounds, partial failures'
+# =====================================================================
+# Synthetic raw snapshots: each tick is 5 s. CPU 90% busy, 400 pages/s, disk 40 ms reads / 10 ms writes, queue 2,
+# one process using 0.9 core. Values are cumulative, as raw perf classes report them.
+$obsMock = @'
+$script:Tick = @{ cpu = 0; mem = 0; disk = 0; proc = 0 }
+$script:Sleeps = 0
+function Start-Sleep { param([int]$Seconds, [int]$Milliseconds) $script:Sleeps++ }
+function Get-CimInstance {
+    param([string]$ClassName, [string]$Filter, [string[]]$Property, [int]$OperationTimeoutSec, $ErrorAction)
+    $F = 10000000.0
+    switch ($ClassName) {
+        'Win32_Processor' { return @([pscustomobject]@{ NumberOfLogicalProcessors = 8 }) }
+        'Win32_OperatingSystem' { return [pscustomobject]@{ TotalVisibleMemorySize = 8388608 } }
+        'Win32_PerfRawData_PerfOS_Processor' {
+            $i = $script:Tick.cpu; $script:Tick.cpu++
+            if ($env:FMP_CPU_FAIL_AT -and $i -ge [int]$env:FMP_CPU_FAIL_AT) { throw 'provider error' }
+            return [pscustomobject]@{ PercentProcessorTime = [uint64](1e9 + $i * 0.1 * 5e7); Timestamp_Sys100NS = [uint64](1.3e17 + $i * 5e7) }
+        }
+        'Win32_PerfRawData_PerfOS_Memory' {
+            $i = $script:Tick.mem; $script:Tick.mem++
+            return [pscustomobject]@{ AvailableBytes = [uint64](400 * 1MB); CommittedBytes = [uint64](7GB); CommitLimit = [uint64](8GB)
+                PagesInputPersec = [uint64](1000 + $i * 2000); Timestamp_PerfTime = [uint64](5e12 + $i * 5 * $F); Frequency_PerfTime = [uint64]$F }
+        }
+        'Win32_PerfRawData_PerfDisk_PhysicalDisk' {
+            if ($env:FMP_DISK_DENIED) { throw (New-Object System.UnauthorizedAccessException('Access denied')) }
+            $i = $script:Tick.disk; $script:Tick.disk++
+            return @(
+                [pscustomobject]@{ Name = '_Total' },
+                [pscustomobject]@{ Name = '0 C:'; AvgDisksecPerRead = [uint64]($i * 4 * $F); AvgDisksecPerRead_Base = [uint64]($i * 100)
+                    AvgDisksecPerWrite = [uint64]($i * 0.5 * $F); AvgDisksecPerWrite_Base = [uint64]($i * 50); AvgDiskQueueLength = [uint64]($i * 2 * 5e7)
+                    CurrentDiskQueueLength = 2; DiskReadBytesPersec = [uint64]($i * 25e6); DiskWriteBytesPersec = [uint64]($i * 5e6)
+                    Timestamp_PerfTime = [uint64](5e12 + $i * 5 * $F); Frequency_PerfTime = [uint64]$F; Timestamp_Sys100NS = [uint64](1.3e17 + $i * 5e7) })
+        }
+        'Win32_PerfRawData_PerfProc_Process' {
+            $i = $script:Tick.proc; $script:Tick.proc++
+            return @(
+                [pscustomobject]@{ Name = '_Total'; IDProcess = 0; PercentProcessorTime = [uint64]0; WorkingSetPrivate = [uint64]0; Timestamp_Sys100NS = [uint64](1.3e17 + $i * 5e7) },
+                [pscustomobject]@{ Name = 'ExampleHog'; IDProcess = 10; ElapsedTime = 1000; PercentProcessorTime = [uint64]($i * 0.9 * 5e7); WorkingSetPrivate = [uint64]((500 + $i * 10) * 1MB); Timestamp_Sys100NS = [uint64](1.3e17 + $i * 5e7) },
+                [pscustomobject]@{ Name = 'ExampleIdle'; IDProcess = 11; ElapsedTime = 2000; PercentProcessorTime = [uint64]1000; WorkingSetPrivate = [uint64](50MB); Timestamp_Sys100NS = [uint64](1.3e17 + $i * 5e7) })
+        }
+    }
+    throw ('unexpected class ' + $ClassName)
+}
+'@
+$env:FMP_CPU_FAIL_AT = ''; $env:FMP_DISK_DENIED = ''
+$ob = Invoke-FmpIsolatedCollector -CollectorFile 'Observation.ps1' -MockScript $obsMock -InvocationScript 'Get-FmpObservationData -DurationSec 30 -IntervalSec 5'
+Assert-FmpTrue -Name 'Observation ran in the sandbox without escape' -Condition (-not $ob.Threw -and $null -eq $ob.Escape) -Detail ([string]$ob.Error)
+$od = $ob.Output.data
+Assert-FmpEqual -Name 'Observation module status ok' -Expected 'ok' -Actual $ob.Output.status
+Assert-FmpEqual -Name '30 s / 5 s = 6 intervals' -Expected 6 -Actual $od.intervals
+Assert-FmpEqual -Name 'CPU from inverse idle timer = 90%' -Expected 90.0 -Actual ([double]$od.cpu.stats.avg)
+Assert-FmpEqual -Name 'CPU highShare = 1 (sustained)' -Expected 1.0 -Actual ([double]$od.cpu.stats.highShare)
+Assert-FmpEqual -Name 'Pages input = 400/s from counter delta / perf seconds' -Expected 400.0 -Actual ([double]$od.memory.pagesInputPerSec.avg)
+Assert-FmpEqual -Name 'Available memory 400 MB' -Expected 400.0 -Actual ([double]$od.memory.availableMB.avg)
+Assert-FmpEqual -Name 'Commit pct 87.5' -Expected 87.5 -Actual ([double]$od.memory.commitPct.max)
+$odDisk = @($od.disks.items)
+Assert-FmpEqual -Name '_Total disk instance excluded' -Expected 1 -Actual $odDisk.Count
+Assert-FmpEqual -Name 'Read latency 40 ms (average timer / base)' -Expected 40.0 -Actual ([double]$odDisk[0].readLatencyMs.avg)
+Assert-FmpEqual -Name 'Write latency 10 ms' -Expected 10.0 -Actual ([double]$odDisk[0].writeLatencyMs.avg)
+Assert-FmpEqual -Name 'Average queue 2 (100ns queue-length counter)' -Expected 2.0 -Actual ([double]$odDisk[0].avgQueue.avg)
+Assert-FmpEqual -Name 'Read throughput 5 MB/s' -Expected 5000000.0 -Actual ([double]$odDisk[0].readBytesPerSec.avg)
+$hog = @($od.processes.topCpu)[0]
+Assert-FmpEqual -Name 'Top process by CPU is the hog' -Expected 'ExampleHog' -Actual $hog.name
+Assert-FmpEqual -Name 'Hog uses 0.9 core on average' -Expected 0.9 -Actual ([double]$hog.avgCores)
+Assert-FmpEqual -Name 'Hog = 11.25% of an 8-thread machine (banker rounding 11.2)' -Expected 11.2 -Actual ([double]$hog.avgPctOfMachine)
+Assert-FmpEqual -Name 'Hog active in every interval' -Expected 1.0 -Actual ([double]$hog.activeShare)
+Assert-FmpEqual -Name 'Hog private memory growth 60 MB (no leak claim, just a number)' -Expected 60.0 -Actual ([double]$hog.privateGrowth)
+Assert-FmpTrue -Name 'Process records carry names only (no path/command line fields)' -Condition ((ConvertTo-FmpJsonText -Data $od.processes) -notmatch 'commandLine|executablePath|"path"')
+Assert-FmpTrue -Name 'Query cost recorded' -Condition ($null -ne $od.cost -and $od.cost.snapshots -eq 7)
+
+$obBound = Invoke-FmpIsolatedCollector -CollectorFile 'Observation.ps1' -MockScript $obsMock -InvocationScript 'Get-FmpObservationData -DurationSec 9999 -IntervalSec 0 -MaxSamples 500'
+Assert-FmpTrue -Name 'Hard bounds: at most 60 intervals even when asked for more' -Condition ($obBound.Output.data.intervals -le 60 -and $obBound.Output.data.intervalSec -ge 1 -and $obBound.Output.data.requestedSec -le 300) -Detail ('intervals=' + $obBound.Output.data.intervals)
+
+$env:FMP_CPU_FAIL_AT = '3'; $env:FMP_DISK_DENIED = '1'
+$obPart = Invoke-FmpIsolatedCollector -CollectorFile 'Observation.ps1' -MockScript $obsMock -InvocationScript 'Get-FmpObservationData -DurationSec 30 -IntervalSec 5'
+$env:FMP_CPU_FAIL_AT = ''; $env:FMP_DISK_DENIED = ''
+Assert-FmpEqual -Name 'Interrupted CPU provider -> state error (never pass)' -Expected 'error' -Actual $obPart.Output.data.cpu.state
+Assert-FmpEqual -Name 'Interrupted CPU keeps the samples taken before the failure' -Expected 2 -Actual ([int]$obPart.Output.data.cpu.stats.count)
+Assert-FmpEqual -Name 'Disk denied -> access_denied' -Expected 'access_denied' -Actual $obPart.Output.data.disks.state
+Assert-FmpEqual -Name 'Memory unaffected by the other failures' -Expected 'pass' -Actual $obPart.Output.data.memory.state
+Assert-FmpEqual -Name 'Module reports partial, not ok' -Expected 'partial' -Actual $obPart.Output.status
+
+$rawEdges = Invoke-FmpIsolatedCollector -CollectorFile 'Observation.ps1' -MockScript '' -InvocationScript @'
+$a = @{ Timestamp_PerfTime = 100; Frequency_PerfTime = 100; Timestamp_Sys100NS = 100; PercentProcessorTime = 20
+    AvgDisksecPerRead = 10; AvgDisksecPerRead_Base = 3; AvgDiskQueueLength = 10; DiskReadBytesPersec = 800 }
+$b = @{ Timestamp_PerfTime = 100; Frequency_PerfTime = 100; Timestamp_Sys100NS = 200; PercentProcessorTime = 130
+    AvgDisksecPerRead = 15; AvgDisksecPerRead_Base = 4; AvgDiskQueueLength = 9; DiskReadBytesPersec = 500 }
+$disk = Get-FmpDiskIntervalFromRaw $a $b
+$valid = Get-FmpDiskIntervalFromRaw $a @{ Timestamp_PerfTime = 300; Frequency_PerfTime = 100; Timestamp_Sys100NS = 200
+    AvgDisksecPerRead = 15; AvgDisksecPerRead_Base = 4; AvgDiskQueueLength = 210; DiskReadBytesPersec = 1800; CurrentDiskQueueLength = 7 }
+[ordered]@{
+    impossibleCpu = Get-FmpCpuPctFromRaw $a $b
+    resetCpu = Get-FmpCpuPctFromRaw $b $a
+    badLatency = $disk.readLatencyMs
+    equalBase = (Get-FmpDiskIntervalFromRaw $a $a).readLatencyMs
+    resetQueue = $disk.avgQueue
+    resetBytes = $disk.readBytesPerSec
+    valid = $valid
+    changedClock = Get-FmpPerfSeconds $a @{ Timestamp_PerfTime = 300; Frequency_PerfTime = 200 }
+    negativeRaw = Get-FmpRawDelta @{ value = -2 } @{ value = 2 } 'value'
+    exactDelta = Get-FmpRawDelta @{ value = [uint64]130000000000000001 } @{ value = [uint64]130000000000000002 } 'value'
+    series = Get-FmpSeriesStats -Values @(90, $null, 92, 10) -High 85
+    p90 = (Get-FmpSeriesStats -Values @(4, 70)).p90
+}
+'@
+Assert-FmpTrue -Name 'Raw edge cases stay offline' -Condition (-not $rawEdges.Threw -and $null -eq $rawEdges.Escape) -Detail ([string]$rawEdges.Error)
+$re = $rawEdges.Output
+Assert-FmpTrue -Name 'Impossible CPU and reset counters produce null rates' -Condition ($null -eq $re.impossibleCpu -and $null -eq $re.resetCpu -and $null -eq $re.resetQueue -and $null -eq $re.resetBytes)
+Assert-FmpTrue -Name 'Latency needs an advancing clock and completed I/O' -Condition ($null -eq $re.badLatency -and $null -eq $re.equalBase)
+Assert-FmpTrue -Name 'Independent 100 Hz reference: 50 ms, 0.5 IOPS, 500 B/s, average queue 2, instant queue 7' -Condition ($re.valid.readLatencyMs -eq 50 -and $re.valid.readsPerSec -eq 0.5 -and $re.valid.readBytesPerSec -eq 500 -and $re.valid.avgQueue -eq 2 -and $re.valid.currentQueue -eq 7)
+Assert-FmpTrue -Name 'Changed frequency and negative raw values invalidate the interval' -Condition ($null -eq $re.changedClock -and $null -eq $re.negativeRaw)
+Assert-FmpEqual -Name 'Raw UInt64 delta preserves ticks above Double integer precision' -Expected 1 -Actual $re.exactDelta
+Assert-FmpTrue -Name 'Nearest-rank p90 and invalid sample breaks a high run' -Condition ($re.p90 -eq 70 -and $re.series.count -eq 3 -and $re.series.longestHighRun -eq 1)
+
+$invalidMock = @'
+function Start-Sleep { param([int]$Seconds) }
+function Get-CimInstance {
+    param([string]$ClassName, [string]$Filter, [string[]]$Property, [int]$OperationTimeoutSec, $ErrorAction)
+    switch ($ClassName) {
+        'Win32_PerfRawData_PerfOS_Processor' { @{ PercentProcessorTime = 'invalid' } }
+        'Win32_PerfRawData_PerfOS_Memory' { @{ AvailableBytes = -1; CommittedBytes = -1; CommitLimit = 100 } }
+        'Win32_PerfRawData_PerfDisk_PhysicalDisk' { @{ Name = '0 C:' } }
+        'Win32_PerfRawData_PerfProc_Process' { throw (New-Object System.NotSupportedException('Not supported')) }
+    }
+}
+'@
+$obInvalid = Invoke-FmpIsolatedCollector -CollectorFile 'Observation.ps1' -MockScript $invalidMock -InvocationScript 'Get-FmpObservationData -DurationSec 15 -IntervalSec 5'
+Assert-FmpTrue -Name 'Invalid raw families retain unknown; unsupported provider retains its state' -Condition (-not $obInvalid.Threw -and $obInvalid.Output.data.cpu.state -eq 'unknown' -and $obInvalid.Output.data.memory.state -eq 'unknown' -and $obInvalid.Output.data.disks.state -eq 'unknown' -and $obInvalid.Output.data.processes.state -eq 'unsupported')
+
+$procMock = @'
+$script:Tick = 0
+function Start-Sleep { param([int]$Seconds) }
+function Get-CimInstance {
+    param([string]$ClassName, [string]$Filter, [string[]]$Property, [int]$OperationTimeoutSec, $ErrorAction)
+    if ($ClassName -ne 'Win32_PerfRawData_PerfProc_Process') { return }
+    $i = $script:Tick++
+    $ts = [uint64](130000000000000001 + $i * 50000000)
+    @{ Name = $(if ($i -eq 0) { 'SameName#1' } else { 'SameName' }); IDProcess = 20; ElapsedTime = 50; Timestamp_Sys100NS = $ts
+       PercentProcessorTime = @(0, 50000000, 0, 50000000)[$i]; WorkingSetPrivate = 1MB }
+    @{ Name = 'SameName'; IDProcess = 21; ElapsedTime = $(if ($i -lt 2) { 20 } else { 60 }); Timestamp_Sys100NS = $ts
+       PercentProcessorTime = $i * 25000000; WorkingSetPrivate = 2MB }
+    @{ Name = 'MissingPid'; ElapsedTime = 100; Timestamp_Sys100NS = $ts; PercentProcessorTime = $i * 50000000; WorkingSetPrivate = 1MB }
+}
+'@
+$procEdges = Invoke-FmpIsolatedCollector -CollectorFile 'Observation.ps1' -MockScript $procMock -InvocationScript 'Get-FmpObservationData -DurationSec 15'
+$ranked = @($procEdges.Output.data.processes.topCpu)
+Assert-FmpTrue -Name 'PID reuse separates lifetimes, a changing suffix preserves identity and a reset drops only its interval' -Condition (-not $procEdges.Threw -and $ranked.Count -eq 3 -and $ranked[0].avgCores -eq 1 -and $ranked[0].intervals -eq 2 -and $ranked[1].intervals -eq 1 -and $ranked[2].intervals -eq 1)
+
+# =====================================================================
+Start-FmpSuite '9. Events 2.0: boot history (by field name), Kernel-Power 41 context, access denied'
+# =====================================================================
+$bootMock = @'
+function Get-Date { return [DateTime]::new(2026, 11, 20, 12, 0, 0, [DateTimeKind]::Utc) }
+function New-FmpMockEvent([int]$Id, [datetime]$At, [string]$Xml, [int]$Level = 4) {
+    $o = [pscustomobject]@{ Id = $Id; Level = $Level; TimeCreated = $At; RecordId = [Guid]::NewGuid().ToString() }
+    $o | Add-Member -MemberType ScriptMethod -Name ToXml -Value ([scriptblock]::Create("return '" + $Xml.Replace("'", "''") + "'"))
+    return $o
+}
+function Get-WinEvent {
+    param([hashtable]$FilterHashtable, [int]$MaxEvents, $ErrorAction)
+    if ($FilterHashtable.LogName -eq 'Microsoft-Windows-Diagnostics-Performance/Operational') {
+        if ($env:FMP_BOOT_DENIED) { throw (New-Object System.UnauthorizedAccessException('Access is denied')) }
+        $b = "<Event><EventData><Data Name='BootTsVersion'>2</Data><Data Name='BootTime'>95000</Data><Data Name='MainPathBootTime'>70000</Data><Data Name='BootPostBootTime'>25000</Data><Data Name='BootIsDegradation'>true</Data><Data Name='BootIsRebootAfterInstall'>false</Data><Data Name='BootNumStartupApps'>12</Data></EventData></Event>"
+        $a = "<Event><EventData><Data Name='Name'>C:\Program Files\Example\updater.exe</Data><Data Name='FriendlyName'>Example Updater</Data><Data Name='TotalTime'>21000</Data><Data Name='DegradationTime'>18000</Data></EventData></Event>"
+        return @((New-FmpMockEvent 100 ([DateTime]::new(2026, 11, 18, 7, 0, 0)) $b 3), (New-FmpMockEvent 101 ([DateTime]::new(2026, 11, 18, 7, 0, 1)) $a), (New-FmpMockEvent 101 ([DateTime]::new(2026, 11, 10, 7, 0, 1)) $a))
+    }
+    if ($FilterHashtable.ContainsKey('Id') -and $FilterHashtable.Id -eq 41) {
+        $k = "<Event><EventData><Data Name='BugcheckCode'>0</Data><Data Name='PowerButtonTimestamp'>133500000000000000</Data><Data Name='SleepInProgress'>0</Data></EventData></Event>"
+        return @(New-FmpMockEvent 41 ([DateTime]::new(2026, 11, 19, 1, 0, 0)) $k 1)
+    }
+    throw (New-Object System.Exception('No events were found that match the specified selection criteria.'))
+}
+function Get-CimInstance { param([string]$ClassName, [int]$OperationTimeoutSec, $ErrorAction) return @() }
+'@
+$env:FMP_BOOT_DENIED = ''
+$bt = Invoke-FmpIsolatedCollector -CollectorFile 'Events.ps1' -MockScript $bootMock -InvocationScript 'Get-FmpEventData -WindowDays 30 -Full:$true -BootHistory:$true'
+Assert-FmpTrue -Name 'Boot history collector ran without escape' -Condition (-not $bt.Threw -and $null -eq $bt.Escape) -Detail ([string]$bt.Error)
+$bp = $bt.Output.data.bootPerformance
+Assert-FmpEqual -Name 'Boot history status ok' -Expected 'ok' -Actual $bp.status
+Assert-FmpEqual -Name 'BootTime parsed by field name (95 s)' -Expected 95000.0 -Actual ([double]@($bp.boots)[0].bootMs)
+Assert-FmpEqual -Name 'MainPath parsed (70 s)' -Expected 70000.0 -Actual ([double]@($bp.boots)[0].mainPathMs)
+Assert-FmpTrue -Name 'Degradation flag parsed' -Condition (@($bp.boots)[0].degraded -eq $true)
+$ct = @($bp.contributors)[0]
+Assert-FmpTrue -Name 'Contributor grouped (2x) with friendly name, no path' -Condition ($ct.count -eq 2 -and $ct.name -eq 'Example Updater' -and $ct.kind -eq 'app')
+Assert-FmpTrue -Name 'No program path leaves the collector' -Condition ((ConvertTo-FmpJsonText -Data $bp) -notmatch 'Program Files')
+$rc = @($bt.Output.data.restartContext.items)
+Assert-FmpTrue -Name 'Kernel-Power 41 context: power button, no bugcheck' -Condition ($rc.Count -eq 1 -and $rc[0].powerButton -eq $true -and $rc[0].bugcheck -eq $false)
+$env:FMP_BOOT_DENIED = '1'
+$btDen = Invoke-FmpIsolatedCollector -CollectorFile 'Events.ps1' -MockScript $bootMock -InvocationScript 'Get-FmpEventData -WindowDays 7 -Full:$true -BootHistory:$true'
+$env:FMP_BOOT_DENIED = ''
+Assert-FmpEqual -Name 'Boot log without admin -> access_denied (no elevation attempted)' -Expected 'access_denied' -Actual $btDen.Output.data.bootPerformance.status
+Assert-FmpTrue -Name 'Boot log access_denied recorded as limitation' -Condition (@($btDen.Output.limits | Where-Object { $_.key -eq 'boot_log_needs_admin' }).Count -eq 1)
+$btSimple = Invoke-FmpIsolatedCollector -CollectorFile 'Events.ps1' -MockScript $bootMock -InvocationScript 'Get-FmpEventData -WindowDays 7'
+Assert-FmpTrue -Name 'Quick audit does not read the boot log' -Condition (-not $btSimple.Output.data.Contains('bootPerformance'))
 
 # =====================================================================
 Write-Host ''

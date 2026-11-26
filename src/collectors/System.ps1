@@ -178,6 +178,8 @@ function Get-FmpSystemData {
                 if ($null -ne $sizeBytes -and $sizeBytes -lt 0) { $sizeBytes = $null }
                 $list.Add([ordered]@{
                     index         = $i
+                    # Windows disk number (the N in \Device\HarddiskN); "index" above is only this list's position.
+                    diskNumber    = ConvertTo-FmpNullableInt (Get-FmpValue $d 'Index')
                     model         = Get-FmpCleanString (Get-FmpValue $d 'Model')
                     sizeBytes     = $sizeBytes
                     status        = Get-FmpCleanString (Get-FmpValue $d 'Status')

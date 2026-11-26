@@ -2,6 +2,10 @@
 
 ## English
 
+### Copyright
+
+FIX MY PC software: Copyright (c) 2026 Lucas Sehenth.
+
 ### Trademarks and non-affiliation
 
 FIX MY PC is an independent, community project. It is **not affiliated with,
@@ -13,24 +17,21 @@ part of the FIX MY PC identity.
 
 ### License
 
-The software in this repository is licensed under the
-**PolyForm Noncommercial License 1.0.0**. The full, unmodified text is in
-[`LICENSE`](LICENSE); the canonical copy is at
-<https://polyformproject.org/licenses/noncommercial/1.0.0>.
+The software in this repository is licensed under the **MIT License**
+(SPDX: `MIT`). The full text, with the copyright notice above, is in
+[`LICENSE`](LICENSE). The `license:` field of [`SKILL.md`](SKILL.md) uses the
+same identifier. The v2 artwork is released under the same license, to the
+extent of the rights the holder has. See "Artwork and name" below.
 
-In plain words (the license text is the only binding statement): the project
-owner allows free use, study, modification and redistribution for noncommercial
-purposes. Commercial use is not granted and requires separate written
-permission from the owner.
+In plain words (the license text is the only binding statement): anyone may use,
+copy, modify, merge, publish, distribute, sublicense and sell copies of the
+software, including for commercial purposes, as long as the copyright notice and
+the permission notice are kept in all copies or substantial portions. The
+software is provided "as is", without warranty.
 
-- This is a **source-available** license. It is **not** an OSI-approved open
-  source license, and the project must not be described as open source.
-- The license requires that anyone who distributes the software gives
-  recipients a copy of the license and any `Required Notice:` lines. No
-  `Required Notice:` copyright line is defined yet; the owner must decide the
-  copyright holder name before a public release (open item, see below).
-- The `license:` field of [`SKILL.md`](SKILL.md) uses the SPDX identifier
-  `PolyForm-Noncommercial-1.0.0`, which refers to the same license.
+Earlier commits of this repository carried a draft MIT text and, later, the
+PolyForm Noncommercial License 1.0.0. Neither applies to the current version;
+they are recorded in [`CHANGELOG.md`](CHANGELOG.md) for traceability only.
 
 ### Third-party components
 
@@ -40,32 +41,62 @@ registry facilities that ship with Windows; none of them is distributed by this
 project. The report icons are authored inline in the renderer. This was checked
 in the source on 2026-11-21 and must be rechecked before each release.
 
-### Name, logo and artwork: ownership recorded separately
+### Artwork and name
 
-The license above is chosen for the **software**. It is not a trademark license,
-and it does not by itself establish who owns the FIX MY PC name, the logo or
-the v2 report artwork (`assets/branding/`, `assets/report/` and the derived
-`assets/optimized/`, which are also embedded in generated reports).
+This section covers the v2 report artwork (`assets/branding/`,
+`assets/report/` and the derived `assets/optimized/`, which is also embedded in
+generated reports) and the FIX MY PC name.
 
-The repository does not yet record the author, creation tool, source files or
-terms of that artwork, and the product name has not had a legal review. These
-remain open items for the project owner (see `LEGAL-REVIEW` in
-`distribution-manifest.json`). Until they are recorded, do not state that the
-artwork is covered by, or owned under, the software license. The visual review
-in `assets/brand-review.json` (finding FMP-10) checked only that the art has no
-Microsoft or other third-party logo; it is not a legal review.
+**The v2 artwork is AI-generated.** The two kinds of evidence are recorded
+separately:
 
-### Open items before a public release
+- *Technical evidence:* all nine images, as delivered, carry Content Credentials
+  (C2PA) stating they were created with OpenAI's ChatGPT image generation
+  (`gpt-image`, source type `trainedAlgorithmicMedia`), with no declared input
+  image. The signatures have not been validated.
+- *Owner's declaration (2026-11-26):* the project owner, Lucas Sehenth,
+  declares that he requested the images from ChatGPT on 20 and 21 November 2026
+  from his personal account, used no third-party images as references or
+  inputs, and had them made specifically for FIX MY PC.
 
-1. Copyright holder name and `Required Notice:` line (owner decision).
-2. Ownership and terms of the name, logo and v2 artwork (owner and legal review).
-3. Legal review of the product name and tagline (they contain "Windows") and of
-   the non-affiliation wording.
-4. Confirmation by a lawyer that PolyForm Noncommercial 1.0.0 fits the
-   owner's intent (for example: use by a company or a paid technician is
-   commercial and is not allowed).
+The banner and logo originally showed "Windows Diagnostic & Audit Skill". That
+line was replaced with "PC Diagnostic & Audit Skill", set in Montserrat (SIL
+Open Font License 1.1). Nothing else in the images changed.
+
+**Artwork license.** On 2026-11-26 the owner authorized releasing the nine v2
+images and their derived copies (optimized variants, Base64 payloads, the
+artwork inside sample reports and screenshots) under the **MIT License**, with
+the same notice `Copyright (c) 2026 Lucas Sehenth`, **to the extent of the
+rights he holds**. AI-generated images may have no copyright protection at all,
+so this grant claims no exclusive rights: it passes on whatever rights exist,
+and anyone may already be free to reuse the images where none exist. Keep the
+AI-generation credit and the C2PA record in
+[`docs/artwork-provenance.md`](docs/artwork-provenance.md) with any copy.
+
+**The MIT License grants no trademark rights.** It does not license the FIX MY
+PC name, or the name and logo used as a brand. The owner keeps the name. A
+preliminary search found "FIX MY PC STORE" registered in the United States
+(8110109, Nice class 37). Seek a legal assessment if a relevant doubt about the
+name comes up.
+
+The visual review in `assets/brand-review.json` (finding FMP-10) checked only
+that the art has no Microsoft or other third-party logo; it is not a legal
+review. No professional legal review has taken place.
+
+### Review status
+
+The owner approved the edited banner and logo on 2026-11-26, which closed
+`LEGAL-REVIEW` (now under `resolved` in `distribution-manifest.json`). That
+review was the owner's, not a professional legal review.
+
+"Windows" now appears only in compatibility statements, such as "a read-only
+diagnostic tool for Windows". See the [Microsoft Trademark and Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks).
 
 ## Português (Brasil)
+
+### Direitos autorais
+
+Software FIX MY PC: Copyright (c) 2026 Lucas Sehenth.
 
 ### Marcas e não afiliação
 
@@ -78,24 +109,21 @@ deve fazer parte da identidade do FIX MY PC.
 
 ### Licença
 
-O software deste repositório é licenciado sob a
-**PolyForm Noncommercial License 1.0.0**. O texto integral e sem alterações está
-em [`LICENSE`](LICENSE); a cópia canônica fica em
-<https://polyformproject.org/licenses/noncommercial/1.0.0>.
+O software deste repositório é licenciado sob a **Licença MIT** (SPDX: `MIT`).
+O texto integral, com o aviso de direitos autorais acima, está em
+[`LICENSE`](LICENSE). O campo `license:` do [`SKILL.md`](SKILL.md) usa o mesmo
+identificador. A arte v2 é disponibilizada sob a mesma licença, na extensão dos
+direitos que o titular detém. Veja "Arte e nome" abaixo.
 
-Em linguagem simples (só o texto da licença vincula): o proprietário permite uso,
-estudo, modificação e redistribuição gratuitos para fins não comerciais. O uso
-comercial não é concedido e exige autorização escrita específica do proprietário.
+Em linguagem simples (só o texto da licença vincula): qualquer pessoa pode usar,
+copiar, modificar, mesclar, publicar, distribuir, sublicenciar e vender cópias
+do software, inclusive para fins comerciais, desde que o aviso de direitos
+autorais e o aviso de permissão sejam mantidos em todas as cópias ou partes
+substanciais. O software é fornecido "no estado em que se encontra", sem garantia.
 
-- É uma licença de **código disponível** (*source-available*). **Não** é uma
-  licença de código aberto aprovada pela OSI, e o projeto não deve ser descrito
-  como código aberto.
-- A licença exige que quem distribuir o software entregue aos destinatários uma
-  cópia da licença e as linhas `Required Notice:`. Ainda não há uma linha
-  `Required Notice:` de direitos autorais; o proprietário precisa definir o nome
-  do titular antes de uma publicação pública (pendência abaixo).
-- O campo `license:` do [`SKILL.md`](SKILL.md) usa o identificador SPDX
-  `PolyForm-Noncommercial-1.0.0`, que se refere à mesma licença.
+Commits anteriores deste repositório traziam um rascunho de texto MIT e, depois,
+a PolyForm Noncommercial License 1.0.0. Nenhum dos dois vale para a versão atual;
+ficam registrados no [`CHANGELOG.md`](CHANGELOG.md) apenas para rastreabilidade.
 
 ### Componentes de terceiros
 
@@ -106,29 +134,54 @@ distribuído por este projeto. Os ícones do laudo são desenhados no próprio
 renderizador. Isso foi conferido no código-fonte em 21/11/2026 e deve ser
 conferido de novo a cada versão.
 
-### Nome, logotipo e arte: titularidade registrada à parte
+### Arte e nome
 
-A licença acima foi escolhida para o **software**. Ela não é uma licença de
-marca e, por si só, não define quem é titular do nome FIX MY PC, do logotipo ou
-da arte v2 do laudo (`assets/branding/`, `assets/report/` e os derivados em
-`assets/optimized/`, que também ficam embutidos nos laudos gerados).
+Esta seção trata da arte v2 do laudo (`assets/branding/`, `assets/report/` e os
+derivados em `assets/optimized/`, que também ficam embutidos nos laudos gerados)
+e do nome FIX MY PC.
 
-O repositório ainda não registra autor, ferramenta de criação, arquivos de
-origem ou termos dessa arte, e o nome do produto não passou por revisão jurídica.
-São pendências do proprietário (veja `LEGAL-REVIEW` em
-`distribution-manifest.json`). Até que sejam registradas, não afirme que a arte
-é coberta ou de titularidade conforme a licença do software. A revisão visual em
-`assets/brand-review.json` (achado FMP-10) verificou apenas que a arte não tem
-logotipo da Microsoft ou de outros terceiros; não é revisão jurídica.
+**A arte v2 foi gerada por IA.** As duas fontes de informação ficam registradas
+separadamente:
 
-### Pendências antes de uma publicação pública
+- *Evidência técnica:* as nove imagens, como foram entregues, trazem Content
+  Credentials (C2PA) que declaram criação com a geração de imagens do ChatGPT,
+  da OpenAI (`gpt-image`, tipo de origem `trainedAlgorithmicMedia`), sem imagem
+  de entrada declarada. As assinaturas não foram validadas.
+- *Declaração do proprietário (26/11/2026):* o proprietário do projeto, Lucas
+  Sehenth, declara que solicitou as imagens ao ChatGPT em 20 e 21 de novembro
+  de 2026, na sua conta pessoal, sem usar imagens de terceiros como referência
+  ou entrada, e que elas foram criadas especificamente para o FIX MY PC.
 
-1. Nome do titular dos direitos autorais e linha `Required Notice:` (decisão do
-   proprietário).
-2. Titularidade e termos do nome, do logotipo e da arte v2 (proprietário e
-   revisão jurídica).
-3. Revisão jurídica do nome e do subtítulo do produto (contêm "Windows") e da
-   redação de não afiliação.
-4. Confirmação por advogado de que a PolyForm Noncommercial 1.0.0 atende à
-   intenção do proprietário (por exemplo: uso por empresa ou por técnico
-   remunerado é comercial e não é permitido).
+O banner e o logotipo exibiam "Windows Diagnostic & Audit Skill". Essa linha foi
+substituída por "PC Diagnostic & Audit Skill", composta em Montserrat (SIL Open
+Font License 1.1). Nada mais mudou nas imagens.
+
+**Licença da arte.** Em 26/11/2026 o proprietário autorizou disponibilizar as
+nove imagens v2 e suas cópias derivadas (variantes otimizadas, payloads Base64,
+a arte nos relatórios de exemplo e nas capturas) sob a **Licença MIT**, com o
+mesmo aviso `Copyright (c) 2026 Lucas Sehenth`, **na extensão dos direitos que
+ele detém**. Imagens geradas por IA podem não ter nenhuma proteção de direito
+autoral. Por isso essa concessão não reivindica direitos exclusivos: ela
+transmite os direitos que existirem, e onde não existirem qualquer pessoa já
+pode reutilizar as imagens. Mantenha o crédito de geração por IA e o registro
+C2PA de [`docs/artwork-provenance.md`](docs/artwork-provenance.md) junto de
+qualquer cópia.
+
+**A Licença MIT não concede direitos de marca.** Ela não licencia o nome FIX MY
+PC, nem o nome e o logotipo usados como marca. O proprietário mantém o nome. A
+busca preliminar encontrou "FIX MY PC STORE" registrada nos Estados Unidos
+(8110109, classe 37 de Nice). Busque avaliação jurídica se surgir dúvida
+relevante sobre o nome.
+
+A revisão visual em `assets/brand-review.json` (achado FMP-10) verificou apenas
+que a arte não tem logotipo da Microsoft ou de outros terceiros; não é revisão
+jurídica. Não houve revisão jurídica profissional.
+
+### Situação da revisão
+
+O proprietário aprovou o banner e o logotipo editados em 26/11/2026, o que
+encerrou o `LEGAL-REVIEW` (agora em `resolved` no `distribution-manifest.json`).
+Essa revisão foi do proprietário, não uma revisão jurídica profissional.
+
+"Windows" agora aparece só em declarações de compatibilidade, como "ferramenta
+de diagnóstico para Windows". Consulte as [diretrizes de marcas da Microsoft](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks).

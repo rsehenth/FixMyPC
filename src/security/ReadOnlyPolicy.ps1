@@ -24,10 +24,11 @@
 # command: anything outside the list is a violation.
 $script:FmpAllowedCommands = @{
     'Get-CimInstance'           = @('ClassName', 'Namespace', 'Filter', 'Property', 'OperationTimeoutSec', 'ErrorAction', 'ErrorVariable')
-    'Get-WinEvent'              = @('FilterHashtable', 'MaxEvents', 'ErrorAction')
+    'Get-WinEvent'              = @('FilterHashtable', 'MaxEvents', 'Oldest', 'ErrorAction')
     'Get-Process'               = @('ErrorAction')
     'Get-Volume'                = @('ErrorAction')
     'Get-PhysicalDisk'          = @('ErrorAction')
+    'Get-StorageReliabilityCounter' = @('PhysicalDisk', 'ErrorAction')
     'Get-ScheduledTask'         = @('ErrorAction')
     'Get-ItemProperty'          = @('Path', 'Name', 'ErrorAction', 'ErrorVariable')
     'Get-Item'                  = @('LiteralPath', 'Force', 'ErrorAction')
@@ -65,7 +66,8 @@ $script:FmpSourceFiles = @(
     'src\analysis\Evidence.ps1', 'src\analysis\Rules.ps1', 'src\analysis\HealthScore.ps1',
     'src\collectors\System.ps1', 'src\collectors\Events.ps1', 'src\collectors\Startup.ps1',
     'src\collectors\Performance.ps1', 'src\collectors\Storage.ps1', 'src\collectors\Advanced.ps1',
-    'src\reports\HtmlRenderer.ps1'
+    'src\collectors\Observation.ps1', 'src\collectors\Investigations.ps1', 'src\analysis\Diagnosis.ps1',
+    'src\analysis\Correlation.ps1', 'src\reports\HtmlRenderer.ps1'
 )
 
 $script:FmpStaticMembers = @(
@@ -96,13 +98,15 @@ $script:FmpPrivateDaclMembers = @(
     '[System.Security.AccessControl.DirectorySecurity]::new', '[System.Security.AccessControl.FileSystemAccessRule]::new',
     '[System.Security.AccessControl.FileSystemRights]::FullControl',
     '[System.Security.Principal.WindowsIdentity]::GetCurrent', '[System.Security.Principal.SecurityIdentifier]::new',
-    '[System.Security.Principal.WellKnownSidType]::LocalSystemSid'
+    '[System.Security.Principal.WellKnownSidType]::LocalSystemSid',
+    # Read-only check that the reserved output folder is the private one this run created (C1).
+    '[System.IO.Directory]::GetAccessControl'
 )
 
 $script:FmpInstanceMethods = @(
     'Add', 'AddDays', 'Append', 'Clear', 'Contains', 'ContainsKey', 'EndsWith', 'FindAll', 'GetBytes',
     'GetCommandName', 'GetType', 'Remove', 'Replace', 'Sort', 'Split', 'StartsWith', 'Stop', 'Substring',
-    'ToArray', 'ToString', 'ToUniversalTime', 'Trim', 'TrimEnd', 'TrimStart'
+    'ToArray', 'ToString', 'ToUniversalTime', 'ToXml', 'Trim', 'TrimEnd', 'TrimStart'
 )
 
 # Defense in depth: banned even if someone later adds them to the
@@ -201,6 +205,11 @@ $script:FmpDataFunctions = @{
     'Get-FmpPerformanceData'           = 'dict'
     'Get-FmpStorageData'               = 'dict'
     'Get-FmpAdvancedData'              = 'dict'
+    'Get-FmpObservationData'           = 'dict'
+    'Get-FmpBootHistory'               = 'dict'
+    'Get-FmpUnexpectedRestartContext'  = 'dict'
+    'ConvertFrom-FmpEventXmlData'      = 'dict'
+    'Get-FmpDiagnosis'                 = 'dict'
     'ConvertTo-FmpSerializable'        = @('dict', 'array', 'string', 'scalar', 'null')
     'ConvertTo-FmpSanitizedDiagnostic' = 'dict'
     'Hide-FmpSanitizedNode'            = @('dict', 'array', 'string', 'scalar', 'null')
@@ -223,7 +232,7 @@ $script:FmpStaticKindOverrides = @{
     '[System.IO.Directory]::CreateDirectory'      = '?'
     '[System.Management.Automation.Language.Parser]::ParseFile' = '?'
 }
-$script:FmpStringMethods = @('ToString', 'Trim', 'TrimStart', 'TrimEnd', 'Substring', 'GetCommandName')
+$script:FmpStringMethods = @('ToString', 'ToXml', 'Trim', 'TrimStart', 'TrimEnd', 'Substring', 'GetCommandName')
 $script:FmpArrayMethods = @('Split', 'ToArray', 'GetBytes', 'FindAll')
 $script:FmpScalarMethods = @('Contains', 'ContainsKey', 'StartsWith', 'EndsWith', 'AddDays', 'ToUniversalTime', 'Add', 'Remove', 'Clear', 'Sort', 'Stop')
 $script:FmpScalarTypes = @('int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'long', 'double', 'float', 'single', 'decimal',
@@ -260,14 +269,33 @@ $script:FmpAllowedCimClasses = @(
     'Win32_DiskDriveToDiskPartition', 'Win32_LogicalDiskToPartition', 'Win32_PnPEntity', 'Win32_PnPSignedDriver',
     'Win32_Service', 'Win32_PageFileUsage', 'Win32_PerfFormattedData_PerfOS_Memory', 'Win32_PerfFormattedData_PerfOS_Processor',
     'Win32_PerfFormattedData_PerfProc_Process', 'Win32_ReliabilityRecords', 'Win32_ReliabilityStabilityMetrics',
+    'Win32_PerfRawData_PerfOS_Processor', 'Win32_PerfRawData_PerfOS_Memory', 'Win32_PerfRawData_PerfDisk_PhysicalDisk',
+    'Win32_PerfRawData_PerfProc_Process',
+    'Win32_PerfRawData_GPUPerformanceCounters_GPUEngine', 'Win32_PerfRawData_GPUPerformanceCounters_GPUAdapterMemory',
+    'MSFT_NetTCPConnection', 'MSFT_NetUDPEndpoint', 'MSFT_NetTCPSetting', 'MSFT_NetUDPSetting',
     'AntiVirusProduct', 'MSStorageDriver_FailurePredictStatus'
 )
-$script:FmpAllowedCimNamespaces = @('root\cimv2', 'root\SecurityCenter2', 'root\wmi')
-$script:FmpAllowedEventLogs = @('System', 'Application', 'Security')
-$script:FmpAllowedEventFilterKeys = @('LogName', 'Id', 'Level', 'StartTime', 'EndTime')
+$script:FmpAllowedCimNamespaces = @('root\cimv2', 'root\SecurityCenter2', 'root\wmi', 'root\StandardCimv2')
+# These classes also expose addresses, ports or adapter identifiers. -Property is mandatory, literal and limited to this list.
+$script:FmpRestrictedCimProperties = @{
+    'MSFT_NetTCPConnection' = @('State', 'OwningProcess')
+    'MSFT_NetUDPEndpoint'   = @('OwningProcess')
+    'MSFT_NetTCPSetting'    = @('SettingName', 'DynamicPortRangeStartPort', 'DynamicPortRangeNumberOfPorts')
+    'MSFT_NetUDPSetting'    = @('DynamicPortRangeStartPort', 'DynamicPortRangeNumberOfPorts')
+    'Win32_PerfRawData_GPUPerformanceCounters_GPUEngine'        = @('Name', 'UtilizationPercentage', 'Timestamp_Sys100NS')
+    'Win32_PerfRawData_GPUPerformanceCounters_GPUAdapterMemory' = @('Name', 'DedicatedUsage', 'SharedUsage')
+}
+$script:FmpAllowedEventLogs = @('System', 'Application', 'Security', 'Microsoft-Windows-Diagnostics-Performance/Operational')
+$script:FmpAllowedEventFilterKeys = @('LogName', 'ProviderName', 'Id', 'Level', 'StartTime', 'EndTime')
+# Closed provider list of the diagnostic event catalog (Events.ps1). An ID alone is ambiguous: 153 is both nvlddmkm and disk.
+$script:FmpAllowedEventProviders = @(
+    'Display', 'nvlddmkm', 'disk', 'stornvme', 'storahci', 'Ntfs', 'Microsoft-Windows-Ntfs', 'Tcpip',
+    'Microsoft-Windows-Kernel-Power', 'Microsoft-Windows-Kernel-General', 'User32', 'EventLog',
+    'amdkmdag', 'amdkmdap', 'atikmdag', 'igfx', 'igfxn', 'Windows Error Reporting'
+)
 $script:FmpPathConsumers = @('Get-ChildItem', 'Get-Item', 'Get-ItemProperty', 'Get-Content', 'Test-Path')
 $script:FmpPathParameters = @('Path', 'LiteralPath')
-$script:FmpSwitchParameters = @('Force', 'File', 'Raw', 'Parent', 'Leaf', 'Descending', 'Unique', 'AsHashtable')
+$script:FmpSwitchParameters = @('Force', 'File', 'Raw', 'Parent', 'Leaf', 'Descending', 'Unique', 'AsHashtable', 'Oldest')
 # Literal strings that look like a filesystem/registry location (UNC, device, provider-qualified, drive, hive).
 $script:FmpPathLikePattern = '^\s*(\\\\|//|[A-Za-z]:[\\/]|HK[A-Z_]+:|[A-Za-z0-9_.]*\\?(FileSystem|Registry|Certificate|Environment|Variable|Function|Alias|WSMan)::)'
 $script:FmpSensitivePathPattern = '(^|[\\/])(\.ssh|\.aws|\.azure|\.gnupg|\.kube|\.docker|\.git-credentials|\.npmrc|\.pypirc|\.netrc|id_rsa|id_ed25519|id_ecdsa|ntuser\.dat|ntds\.dit|unattend\.xml|sysprep\.inf|hiberfil\.sys|login data|logins\.json|key4\.db|local state)([\\/]|$)|config[\\/](sam|security|system|software|default)([\\/]|$)|\\microsoft\\(credentials|protect|vault)([\\/]|$)|\.(kdbx|pfx|p12|pem|ppk)$|[\\/]credentials$'
@@ -908,13 +936,23 @@ function Get-FmpQueryProblems {
     $cmdArgs = @(Get-FmpCommandArguments $Command)
     if ($Name -eq 'Get-WinEvent') {
         $filter = $null
+        $oldest = $false
+        $maxEvents = $null
         foreach ($a in $cmdArgs) {
             if ($null -eq $a.name) { $problems.Add('Get-WinEvent positional argument'); continue }
             if ($a.name -eq 'FilterHashtable') { $filter = $a.value }
+            elseif ($a.name -eq 'Oldest') { $oldest = $true; if ($null -ne $a.value) { $problems.Add('-Oldest takes no value') } }
+            elseif ($a.name -eq 'MaxEvents') { $maxEvents = $a.value }
         }
         if ($filter -isnot [System.Management.Automation.Language.HashtableAst]) {
             $problems.Add('Get-WinEvent -FilterHashtable must be a literal hashtable')
             return $problems.ToArray()
+        }
+        $filterKeys = @($filter.KeyValuePairs | ForEach-Object { [string]$_.Item1.Extent.Text.Trim([char]39, [char]34) })
+        # -Oldest exists only to read the single oldest record's time (log retention), never to walk a log from its start.
+        if ($oldest) {
+            if ($maxEvents -isnot [System.Management.Automation.Language.ConstantExpressionAst] -or [string]$maxEvents.Value -ne '1') { $problems.Add('-Oldest requires -MaxEvents 1') }
+            if ($filterKeys.Count -ne 1 -or $filterKeys[0] -ne 'LogName') { $problems.Add('-Oldest allows only a LogName filter') }
         }
         foreach ($pair in $filter.KeyValuePairs) {
             $key = $pair.Item1
@@ -927,13 +965,21 @@ function Get-FmpQueryProblems {
                 if ($vals.Count -eq 0) { $problems.Add('LogName is not a known literal'); continue }
                 foreach ($lv in $vals) { if ([string]$lv -notin $script:FmpAllowedEventLogs) { $problems.Add('log not allowed: ' + $lv) } }
             }
+            elseif ([string]$key.Value -eq 'ProviderName') {
+                if ('LogName' -notin $filterKeys) { $problems.Add('ProviderName requires a LogName') }
+                $vals = @(Get-FmpLiteralStrings $pair.Item2 $Bindings $Chain)
+                if ($vals.Count -eq 0) { $problems.Add('ProviderName is not a known literal'); continue }
+                foreach ($pv in $vals) { if ([string]$pv -cnotin $script:FmpAllowedEventProviders) { $problems.Add('provider not allowed: ' + $pv) } }
+            }
         }
     }
     elseif ($Name -eq 'Get-CimInstance') {
         $class = $null
+        $propertyArg = $null
         foreach ($a in $cmdArgs) {
             if ($null -eq $a.name) { $problems.Add('Get-CimInstance positional argument'); continue }
             if ($a.name -eq 'ClassName') { $class = $a.value }
+            elseif ($a.name -eq 'Property') { $propertyArg = $a.value }
             elseif ($a.name -eq 'Namespace') {
                 $ns = @(Get-FmpLiteralStrings $a.value $Bindings $Chain)
                 if ($ns.Count -ne 1 -or [string]$ns[0] -notin $script:FmpAllowedCimNamespaces) { $problems.Add('namespace not allowed: ' + $a.value.Extent.Text) }
@@ -948,6 +994,13 @@ function Get-FmpQueryProblems {
         $cv = @()
         if ($null -ne $class) { $cv = @(Get-FmpLiteralStrings $class $Bindings $Chain) }
         if ($cv.Count -ne 1 -or [string]$cv[0] -notin $script:FmpAllowedCimClasses) { $problems.Add('class not allowed or not literal') }
+        elseif ($script:FmpRestrictedCimProperties.ContainsKey([string]$cv[0])) {
+            $restricted = $script:FmpRestrictedCimProperties[[string]$cv[0]]
+            $props = @()
+            if ($null -ne $propertyArg) { $props = @(Get-FmpLiteralStrings $propertyArg $Bindings $Chain) }
+            if ($props.Count -eq 0) { $problems.Add('class requires a literal -Property list: ' + $cv[0]) }
+            foreach ($pn in $props) { if ([string]$pn -cnotin $restricted) { $problems.Add('property not allowed: ' + $pn) } }
+        }
     }
     return $problems.ToArray()
 }
@@ -1156,15 +1209,17 @@ function Test-FmpScriptCompliance {
         if ($member.Static) {
             if ($target -in $script:FmpStaticMembers) { continue }
             if ($isCommon -and $target -in @('[System.IO.File]::Open', '[System.IO.Directory]::CreateDirectory')) { continue }
+            # Common only: reject or flag a local incident time that a DST change makes nonexistent or ambiguous.
+            if ($isCommon -and $target -eq '[TimeZoneInfo]::Local') { continue }
             # Common only: build the in-memory private DACL for NEW output folders (S11-01). Applying ACLs to existing
             # objects stays impossible: SetAccessControl is banned everywhere.
             if ($isCommon -and $target -in $script:FmpPrivateDaclMembers) { continue }
             if ($Role -eq 'test' -and $target -in @('[System.IO.File]::ReadAllText', '[Environment]::NewLine')) { continue }
             if ($Role -eq 'security' -and $target -eq '[System.IO.File]::ReadAllLines') { continue }
-            # Report writer only: pure in-memory hashing of the static print script for its CSP hash.
-            if ($Role -eq 'writer' -and $target -in @('[System.Security.Cryptography.SHA256]::Create', '[Convert]::ToBase64String')) { continue }
+            # Report writer (CSP hash of the print script) and Common (consent scope token): pure in-memory hashing only.
+            if (($Role -eq 'writer' -or $isCommon) -and $target -in @('[System.Security.Cryptography.SHA256]::Create', '[Convert]::ToBase64String')) { continue }
         }
-        elseif ($Role -eq 'writer' -and $name -eq 'ComputeHash' -and $member -is [System.Management.Automation.Language.InvokeMemberExpressionAst] -and
+        elseif (($Role -eq 'writer' -or $isCommon) -and $name -eq 'ComputeHash' -and $member -is [System.Management.Automation.Language.InvokeMemberExpressionAst] -and
             $member.Expression.Extent.Text -eq '[System.Security.Cryptography.SHA256]::Create()') { continue }
         elseif ($member -isnot [System.Management.Automation.Language.InvokeMemberExpressionAst] -or $name -in $script:FmpInstanceMethods) {
             if ($member -is [System.Management.Automation.Language.InvokeMemberExpressionAst] -and $script:FmpGuardedMethodKinds.ContainsKey($name)) {
@@ -1176,7 +1231,7 @@ function Test-FmpScriptCompliance {
             }
             continue
         }
-        elseif ($isCommon -and $name -in @('Write', 'Dispose', 'ReadToEnd', 'SetAccessRuleProtection', 'AddAccessRule')) { continue }
+        elseif ($isCommon -and $name -in @('Write', 'Dispose', 'ReadToEnd', 'SetAccessRuleProtection', 'AddAccessRule', 'IsInvalidTime', 'IsAmbiguousTime')) { continue }
         $type = 'member_not_allowed'
         if ($name -in $script:FmpBannedMethods) { $type = 'banned_method' }
         Add-FmpViolation -Type $type -Detail $name -Line $line

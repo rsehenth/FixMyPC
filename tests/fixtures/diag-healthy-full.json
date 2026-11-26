@@ -1,0 +1,670 @@
+{
+ "schemaVersion": "1.0.0",
+ "run": {
+  "id": "fmp-fixture-healthy-full",
+  "tool": "FIX MY PC: PC Diagnostic & Audit Skill",
+  "toolVersion": "0.1.0",
+  "mode": "full",
+  "language": "pt-BR",
+  "synthetic": true,
+  "startedAt": "2026-11-19T12:00:00.000Z",
+  "finishedAt": "2026-11-19T12:01:12.000Z",
+  "symptom": "slow",
+  "duringProblem": "no",
+  "observeSeconds": 60
+ },
+ "system": {
+  "os": {
+   "caption": "Windows 11 Pro",
+   "version": "10.0.26200",
+   "buildNumber": "26200",
+   "displayVersion": "25H2",
+   "ubr": 6584,
+   "currentBuild": "26200",
+   "editionId": "Professional",
+   "architecture": "64-bit",
+   "installDate": "2025-03-14T10:22:00.000Z",
+   "lastBootAt": "2026-11-17T07:12:00.000Z",
+   "uptimeHours": 53.8
+  },
+  "cpu": {
+   "name": "Example CPU Model 8-Core",
+   "cores": 8,
+   "logicalProcessors": 16,
+   "maxClockMhz": 4200
+  },
+  "memory": {
+   "totalBytes": 34359738368,
+   "freeBytes": 19327352832,
+   "availablePct": 56.2
+  },
+  "gpu": [
+   {
+    "name": "Example Graphics Adapter",
+    "driverVersion": "32.0.15.6109",
+    "status": "OK"
+   }
+  ],
+  "disks": [
+   {
+    "index": 1,
+    "model": "Example SSD 1TB",
+    "sizeBytes": 1000204886016,
+    "status": "OK",
+    "interfaceType": "NVMe"
+   }
+  ],
+  "volumes": [
+   {
+    "driveLetter": "C:",
+    "label": "System",
+    "sizeBytes": 495386677248,
+    "freeBytes": 219043332096,
+    "freePct": 44.2,
+    "isSystem": true
+   },
+   {
+    "driveLetter": "D:",
+    "label": "Data",
+    "sizeBytes": 503790129152,
+    "freeBytes": 403032103322,
+    "freePct": 80.0,
+    "isSystem": false
+   }
+  ]
+ },
+ "events": {
+  "windowDays": 7,
+  "logs": {
+   "System": {
+    "status": "ok",
+    "totalEvents": 0,
+    "groups": []
+   },
+   "Application": {
+    "status": "ok",
+    "totalEvents": 0,
+    "groups": []
+   },
+   "Security": {
+    "status": "ok",
+    "totalEvents": 0,
+    "groups": []
+   }
+  },
+  "security": {
+   "status": "ok",
+   "logonFailures": 0,
+   "firstSeen": null,
+   "lastSeen": null
+  },
+  "reliability": {
+   "status": "ok",
+   "records": [],
+   "metrics": [
+    {
+     "at": "2026-11-18T00:00:00.000Z",
+     "stability": 9.98
+    }
+   ]
+  },
+  "bootPerformance": {
+   "status": "access_denied",
+   "windowDays": 60,
+   "truncated": false,
+   "boots": [],
+   "contributors": []
+  }
+ },
+ "startup": {
+  "items": [
+   {
+    "kind": "run",
+    "name": "ExampleCloudSync",
+    "command": "\"C:\\Program Files\\ExampleCloud\\sync.exe\" /min",
+    "source": "HKLM",
+    "view": "64",
+    "origin": "registry"
+   },
+   {
+    "kind": "run",
+    "name": "AudioTray",
+    "command": "C:\\Windows\\System32\\exampletray.exe",
+    "source": "HKCU",
+    "view": "64",
+    "origin": "registry"
+   }
+  ],
+  "logonTasks": [],
+  "autoServices": [
+   {
+    "name": "wuauserv",
+    "displayName": "Windows Update",
+    "state": "Running",
+    "startMode": "Auto",
+    "delayed": true,
+    "pathName": "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+    "account": "LocalSystem"
+   }
+  ]
+ },
+ "performance": {
+  "memory": {
+   "totalBytes": 34359738368,
+   "freeBytes": 19327352832,
+   "availablePct": 56.2,
+   "committedBytes": 12455800832,
+   "commitLimitBytes": 39754670080,
+   "commitPct": 31.3,
+   "availableMB": 18432
+  },
+  "cpu": {
+   "sampleCount": 3,
+   "requestedSamples": 3,
+   "intervalSec": 2,
+   "avgPercent": 9.3,
+   "maxPercent": 12.0,
+   "minPercent": 7.0,
+   "samples": [
+    {
+     "at": "2026-11-19T12:00:40.000Z",
+     "percent": 7.0
+    },
+    {
+     "at": "2026-11-19T12:00:42.000Z",
+     "percent": 9.0
+    },
+    {
+     "at": "2026-11-19T12:00:44.000Z",
+     "percent": 12.0
+    }
+   ]
+  },
+  "topProcessesByMemory": [
+   {
+    "name": "explorer",
+    "id": 4212,
+    "workingSetMB": 212.4
+   },
+   {
+    "name": "chrome",
+    "id": 8812,
+    "workingSetMB": 480.9
+   }
+  ],
+  "topProcessesByCpu": [
+   {
+    "name": "System",
+    "id": 4,
+    "percentProcessorTime": 1.2
+   }
+  ],
+  "pagefile": {
+   "name": "C:\\pagefile.sys",
+   "allocatedMB": 4864,
+   "currentUsageMB": 812,
+   "peakUsageMB": 2210
+  }
+ },
+ "storage": {
+  "volumes": [
+   {
+    "driveLetter": "C:",
+    "label": "System",
+    "sizeBytes": 495386677248,
+    "freeBytes": 219043332096,
+    "freePct": 44.2,
+    "isSystem": true,
+    "healthStatus": "Healthy",
+    "operationalStatus": "Online"
+   },
+   {
+    "driveLetter": "D:",
+    "label": "Data",
+    "sizeBytes": 503790129152,
+    "freeBytes": 403032103322,
+    "freePct": 80.0,
+    "isSystem": false,
+    "healthStatus": "Healthy",
+    "operationalStatus": "Online"
+   }
+  ],
+  "physicalDisks": [
+   {
+    "index": 1,
+    "friendlyName": "Example SSD 1TB",
+    "mediaType": "SSD",
+    "busType": "NVMe",
+    "healthStatus": "Healthy",
+    "operationalStatus": "Online",
+    "sizeBytes": 1000204886016
+   }
+  ],
+  "smart": {
+   "status": "access_denied",
+   "checked": 0,
+   "items": []
+  }
+ },
+ "advanced": {
+  "problemDevices": {
+   "status": "ok",
+   "count": 0,
+   "items": []
+  },
+  "driverInfo": {
+   "status": "not_collected",
+   "items": []
+  },
+  "defender": {
+   "status": "ok",
+   "data": {
+    "amServiceEnabled": true,
+    "antivirusEnabled": true,
+    "realTimeProtection": true,
+    "behaviorMonitor": true,
+    "signatureLastUpdated": "2026-11-19T09:04:00.000Z",
+    "signatureAgeDays": 0,
+    "quickScanEnd": "2026-11-15T03:00:00.000Z",
+    "fullScanEnd": null
+   }
+  },
+  "thirdPartyAv": {
+   "status": "ok",
+   "count": 0,
+   "items": []
+  },
+  "pendingReboot": {
+   "status": "ok",
+   "pendingWuReboot": false,
+   "pendingCbs": false,
+   "pendingFileRename": false,
+   "any": false
+  },
+  "updates": {
+   "status": "not_collected",
+   "justification": "Querying Windows Update via COM starts update-agent activity and network access; not passive."
+  },
+  "hotfixes": {
+   "status": "ok",
+   "latest": "2026-11-11T00:00:00.000Z",
+   "items": [
+    {
+     "hotFixID": "KB5050000",
+     "description": "Cumulative Update",
+     "installedOn": "2026-11-11T00:00:00.000Z"
+    }
+   ]
+  },
+  "installedApps": {
+   "status": "ok",
+   "totalCount": 2,
+   "truncated": false,
+   "items": [
+    {
+     "displayName": "Example Browser",
+     "displayVersion": "131.0",
+     "publisher": "Example Corp",
+     "installDate": "20250314",
+     "estimatedSizeKB": 512000,
+     "source": "hklm64"
+    },
+    {
+     "displayName": "Example Office Suite",
+     "displayVersion": "2409",
+     "publisher": "Example Soft",
+     "installDate": "20250315",
+     "estimatedSizeKB": 2097152,
+     "source": "hklm64"
+    }
+   ]
+  },
+  "signatures": {
+   "status": "ok",
+   "checked": 2,
+   "truncated": false,
+   "items": [
+    {
+     "file": "sync.exe",
+     "location": "registry HKLM/64",
+     "status": "Valid",
+     "signer": "Example Corp"
+    },
+    {
+     "file": "exampletray.exe",
+     "location": "registry HKCU/64",
+     "status": "Valid",
+     "signer": "Example Soft"
+    }
+   ]
+  }
+ },
+ "modules": [
+  {
+   "id": "observation",
+   "status": "ok",
+   "startedAt": "2026-11-19T12:00:00.000Z",
+   "durationMs": 61000,
+   "commands": [
+    "Get-CimInstance"
+   ],
+   "errors": [],
+   "limits": []
+  },
+  {
+   "id": "system",
+   "status": "ok",
+   "startedAt": "2026-11-19T12:00:00.000Z",
+   "durationMs": 1420,
+   "commands": [
+    "Get-CimInstance",
+    "Get-ItemProperty"
+   ],
+   "errors": [],
+   "limits": []
+  },
+  {
+   "id": "events",
+   "status": "ok",
+   "startedAt": "2026-11-19T12:00:01.420Z",
+   "durationMs": 22310,
+   "commands": [
+    "Get-WinEvent"
+   ],
+   "errors": [],
+   "limits": []
+  },
+  {
+   "id": "startup",
+   "status": "ok",
+   "startedAt": "2026-11-19T12:00:23.730Z",
+   "durationMs": 3120,
+   "commands": [
+    "Get-CimInstance",
+    "Get-ItemProperty",
+    "Get-ScheduledTask",
+    "Get-ChildItem"
+   ],
+   "errors": [],
+   "limits": []
+  },
+  {
+   "id": "performance",
+   "status": "ok",
+   "startedAt": "2026-11-19T12:00:26.850Z",
+   "durationMs": 8430,
+   "commands": [
+    "Get-CimInstance",
+    "Get-Process",
+    "Start-Sleep"
+   ],
+   "errors": [],
+   "limits": []
+  },
+  {
+   "id": "storage",
+   "status": "ok",
+   "startedAt": "2026-11-19T12:00:35.280Z",
+   "durationMs": 2140,
+   "commands": [
+    "Get-CimInstance",
+    "Get-PhysicalDisk",
+    "Get-Volume"
+   ],
+   "errors": [],
+   "limits": []
+  },
+  {
+   "id": "advanced",
+   "status": "ok",
+   "startedAt": "2026-11-19T12:00:37.420Z",
+   "durationMs": 26900,
+   "commands": [
+    "Get-CimInstance",
+    "Get-AuthenticodeSignature",
+    "Get-HotFix",
+    "Get-MpComputerStatus",
+    "Get-ItemProperty",
+    "Test-Path"
+   ],
+   "errors": [],
+   "limits": []
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-system-1",
+   "module": "system",
+   "checkId": "system.os",
+   "at": "2026-11-19T12:00:01.000Z",
+   "summary": "WMI Win32_OperatingSystem + registry CurrentVersion"
+  },
+  {
+   "id": "ev-storage-1",
+   "module": "storage",
+   "checkId": "storage.volumes",
+   "at": "2026-11-19T12:00:36.000Z",
+   "summary": "Win32_LogicalDisk + Get-Volume health + SMART predict status"
+  }
+ ],
+ "subChecks": [],
+ "observation": {
+  "requestedSec": 60,
+  "intervalSec": 5,
+  "startedAt": "2026-11-19T12:00:02.000Z",
+  "logicalProcessors": 8,
+  "finishedAt": "2026-11-19T12:01:03.000Z",
+  "actualSec": 61.2,
+  "intervals": 12,
+  "truncated": false,
+  "cost": {
+   "queryMsAvg": 310,
+   "queryMsMax": 620,
+   "snapshots": 13
+  },
+  "cpu": {
+   "state": "pass",
+   "highPct": 85,
+   "stats": {
+    "count": 12,
+    "avg": 11.17,
+    "min": 8,
+    "max": 15,
+    "p90": 13,
+    "highShare": 0.0,
+    "longestHighRun": 0
+   },
+   "series": [
+    12,
+    9,
+    15,
+    11,
+    8,
+    14,
+    10,
+    9,
+    13,
+    12,
+    11,
+    10
+   ]
+  },
+  "memory": {
+   "state": "pass",
+   "totalBytes": 34359738368,
+   "availableMB": {
+    "count": 12,
+    "avg": 18432.0,
+    "min": 18432,
+    "max": 18432,
+    "p90": 18432,
+    "highShare": null,
+    "longestHighRun": 0
+   },
+   "commitPct": {
+    "count": 12,
+    "avg": 31.0,
+    "min": 31,
+    "max": 31,
+    "p90": 31,
+    "highShare": null,
+    "longestHighRun": 0
+   },
+   "pagesInputPerSec": {
+    "count": 12,
+    "avg": 0.75,
+    "min": 0,
+    "max": 3,
+    "p90": 1,
+    "highShare": null,
+    "longestHighRun": 0
+   },
+   "series": [
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 1
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 0
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 2
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 0
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 1
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 0
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 0
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 3
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 1
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 0
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 0
+    },
+    {
+     "availableMB": 18432,
+     "commitPct": 31,
+     "pagesInputPerSec": 1
+    }
+   ]
+  },
+  "disks": {
+   "state": "pass",
+   "items": [
+    {
+     "name": "0 C:",
+     "intervals": 12,
+     "activeIntervals": 12,
+     "readLatencyMs": {
+      "count": 12,
+      "avg": 0.6,
+      "min": 0.5,
+      "max": 0.8,
+      "p90": 0.7,
+      "highShare": null,
+      "longestHighRun": 0
+     },
+     "writeLatencyMs": {
+      "count": 12,
+      "avg": 0.4,
+      "min": 0.4,
+      "max": 0.4,
+      "p90": 0.4,
+      "highShare": null,
+      "longestHighRun": 0
+     },
+     "avgQueue": {
+      "count": 12,
+      "avg": 0.02,
+      "min": 0.02,
+      "max": 0.02,
+      "p90": 0.02,
+      "highShare": null,
+      "longestHighRun": 0
+     },
+     "readBytesPerSec": {
+      "count": 12,
+      "avg": 120000.0,
+      "min": 120000,
+      "max": 120000,
+      "p90": 120000,
+      "highShare": null,
+      "longestHighRun": 0
+     },
+     "writeBytesPerSec": {
+      "count": 12,
+      "avg": 90000.0,
+      "min": 90000,
+      "max": 90000,
+      "p90": 90000,
+      "highShare": null,
+      "longestHighRun": 0
+     }
+    }
+   ]
+  },
+  "processes": {
+   "state": "pass",
+   "tracked": 212,
+   "capped": false,
+   "topCpu": [
+    {
+     "name": "explorer",
+     "avgCores": 0.05,
+     "avgPctOfMachine": 0.6,
+     "maxCores": 0.2,
+     "activeShare": 0.0,
+     "intervals": 12,
+     "privateMB": 110.2,
+     "privateGrowth": 0.4
+    }
+   ],
+   "topMemory": [
+    {
+     "name": "explorer",
+     "avgCores": 0.05,
+     "avgPctOfMachine": 0.6,
+     "maxCores": 0.2,
+     "activeShare": 0.0,
+     "intervals": 12,
+     "privateMB": 110.2,
+     "privateGrowth": 0.4
+    }
+   ]
+  }
+ }
+}

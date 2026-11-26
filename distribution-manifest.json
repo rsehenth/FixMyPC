@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "product": "FIX MY PC: Windows Diagnostic & Audit Skill",
+  "product": "FIX MY PC: PC Diagnostic & Audit Skill",
   "version": "0.1.0",
-  "status": "NOT RELEASED - preparation only. This manifest authorizes no publication and no real audit.",
+  "status": "SOURCE PUBLISHED, PACKAGE NOT RELEASED - Source code is public on GitHub under MIT. 2.0 development is complete and approved for supervised personal use with caveats. No public release package (ZIP) yet: Full-mode validation on physical hardware and release checksums are pending. This manifest authorizes no real audit.",
   "note": "Every file in the repository must match exactly one group below. tools/Test-DistributionManifest.ps1 fails on unclassified files, on patterns that match nothing, and on forbidden names inside the runtime package. Patterns are relative, use '/' and '*' (which also crosses folders).",
   "runtime": [
     "fixmypc.ps1",
@@ -22,7 +22,8 @@
     "adapters/*",
     "docs/readonly-policy.md",
     "docs/methodology.md",
-    "docs/visual-integration.md"
+    "docs/visual-integration.md",
+    "docs/artwork-provenance.md"
   ],
   "development": [
     "distribution-manifest.json",
@@ -45,8 +46,14 @@
     ".impeccable/*",
     ".commandcode/*",
     "graphify-out/*",
-    "out/*"
+    "out/*",
+    "artifacts/*",
+    ".tmp-homolog/*"
   ],
+  "neverShipNotes": {
+    "artifacts/*": "Generated packages (personal ZIP, checksums, inventory). Build output, never part of the runtime package; ignored by .gitignore.",
+    ".tmp-homolog/*": "Private temporary VM homologation evidence (guest screenshots, local account and host details). Never ship, never commit; ignored by .gitignore."
+  },
   "forbiddenInRuntime": [
     "*/report.html",
     "*diagnostic-internal.json",
@@ -61,18 +68,17 @@
   "resolved": [
     {
       "id": "LICENSE-CHOICE",
-      "summary": "Owner selected PolyForm Noncommercial License 1.0.0 (source-available, not OSI open source). LICENSE holds the unmodified official text; SKILL.md (SPDX PolyForm-Noncommercial-1.0.0), README.md, README.pt-BR.md and NOTICE.md cite the same license. Legal review of the text, copyright holder and artwork ownership remain under LEGAL-REVIEW."
+      "summary": "Owner selected the MIT License (SPDX MIT) as the only license of the current version, Copyright (c) 2026 Lucas Sehenth. LICENSE holds the standard MIT text; SKILL.md (license: MIT), README.md, README.pt-BR.md and NOTICE.md cite the same license and holder. Earlier PolyForm Noncommercial 1.0.0 and draft MIT texts are history only (CHANGELOG.md). On 2026-11-26 the owner extended MIT to the v2 artwork, to the extent of his rights (docs/artwork-provenance.md). The MIT License grants no trademark rights in the FIX MY PC name."
     },
     {
       "id": "FMP-10",
       "summary": "Windows logo and approval-style art replaced by the v2 identity (stage 7.1). Gate: assets/brand-review.json is bound to each source hash and checked by tests/Visual.Tests.ps1 (V12). Visual review only; not a legal review."
-    }
-  ],
-  "releaseBlockers": [
+    },
     {
       "id": "LEGAL-REVIEW",
-      "summary": "Product name and tagline contain 'Windows'; non-affiliation wording needs legal review before public distribution. Ownership, authorship and terms of the name, logo and v2 artwork are not recorded, and the copyright holder / Required Notice line for PolyForm Noncommercial 1.0.0 is not defined. See NOTICE.md.",
-      "affectedRuntimeFiles": "README.md, README.pt-BR.md, NOTICE.md, LICENSE, locales/*.json, assets/optimized/embed/*.b64"
+      "summary": "Closed by the owner on 2026-11-26 (docs/artwork-provenance.md): C2PA evidence (ChatGPT gpt-image, no declared ingredient; signatures not validated) and the owner's declaration (personal account, no third-party inputs, made for FIX MY PC, holder Lucas Sehenth) are recorded separately; the nine images are cleared for redistribution with FIX MY PC, with the limits documented there (copyright in AI output may not exist; exclusivity not assured). Subtitle changed to 'PC Diagnostic & Audit Skill' in banner, logo and runtime labels; Windows stays only in compatibility statements. Owner decisions 2026-11-26: the artwork is released under MIT to the extent of the holder's rights (no exclusive rights claimed; AI-generation credit and C2PA record kept); MIT grants no trademark rights; the FIX MY PC name is kept, with the similar US registration 'FIX MY PC STORE' (8110109, Nice 37) on record and legal assessment advised if a relevant doubt arises; public main is not rewritten and the local commits are integrated as one consolidated commit. The owner approved the edited banner and logo on 2026-11-26. No professional legal review has taken place. See NOTICE.md.",
+      "affectedRuntimeFiles": "NOTICE.md, docs/artwork-provenance.md"
     }
-  ]
+  ],
+  "releaseBlockers": []
 }
