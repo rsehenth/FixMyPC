@@ -57,7 +57,7 @@ auditoria de segurança nem substituto de um diagnóstico profissional.
 | Item | Situação |
 |---|---|
 | Código-fonte | Publicado neste repositório sob a Licença MIT |
-| Desenvolvimento | **FIX MY PC 2.0 concluído** (Fases A, B e C), aprovado para **uso pessoal supervisionado, com ressalvas** (versão da ferramenta 0.1.0) |
+| Desenvolvimento | **FIX MY PC 2.0 concluído** (Fases A, B e C), aprovado para **uso pessoal supervisionado, com ressalvas** (versão da ferramenta 0.2.0-preview) |
 | Modo Simples | Validado em uma execução supervisionada no Windows 11 Enterprise com Windows PowerShell 5.1 |
 | Modo Completo (2.0) | Auditorias reais `standard` e `deep` concluídas em VM Windows 11 supervisionada com permissões de usuário comum. Veredito **aprovado com ressalvas**. A validação em hardware físico está pendente |
 | Windows 10, PowerShell 7 | Não validados e não suportados |

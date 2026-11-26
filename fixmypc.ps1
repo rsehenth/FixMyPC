@@ -1,5 +1,5 @@
 # =====================================================================
-# FIX MY PC: PC Diagnostic & Audit Skill - v0.1.0
+# FIX MY PC: PC Diagnostic & Audit Skill - v0.2.0-preview
 # Entry point. Read-only Windows audit producing HTML + JSON reports.
 #
 # Usage examples:

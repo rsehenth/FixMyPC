@@ -4,7 +4,7 @@ description: Run a read-only Windows PC investigation (Quick or Full audit) that
 argument-hint: "[audit]"
 license: MIT
 metadata:
-  version: "0.1.0"
+  version: "0.2.0-preview"
   diagnosis: "2.0 (development complete; approved for supervised personal use, with caveats; source code public under MIT; no packaged public release yet)"
 ---
 
