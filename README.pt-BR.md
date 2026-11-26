@@ -2,9 +2,10 @@
 
 [English](README.md) · **Português (Brasil)**
 
-> **Status: FIX MY PC 2.0 — aprovado para uso pessoal supervisionado, com ressalvas.** Não aprovado para distribuição pública.
-> Licenciado sob a [Licença MIT](LICENSE). Copyright (c) 2026 Lucas Sehenth.
-> Nenhuma versão pública foi aprovada ainda.
+> **Status**
+> - **Código-fonte:** disponível neste repositório sob a [Licença MIT](LICENSE). Copyright (c) 2026 Lucas Sehenth.
+> - **FIX MY PC 2.0:** desenvolvimento concluído e aprovado para **uso pessoal supervisionado, com ressalvas**.
+> - **Pacote de lançamento (ZIP):** ainda não lançado. Estão pendentes a validação do Modo Completo em hardware físico e os checksums do pacote.
 
 O FIX MY PC é uma ferramenta de diagnóstico para Windows, somente leitura. Ela
 executa verificações locais reais, aplica um conjunto determinístico de regras e
@@ -13,7 +14,8 @@ nem altera o computador.
 
 O FIX MY PC 2.0 acrescenta diagnóstico avançado do Windows no **Modo Completo**.
 As auditorias `standard` e `deep` foram aprovadas com ressalvas em uma VM
-Windows 11 supervisionada. O pacote pessoal está preparado para uso supervisionado.
+Windows 11 supervisionada. Essa aprovação vale só para uso pessoal supervisionado;
+ainda não existe pacote público de lançamento.
 
 ## Conteúdo
 
@@ -54,16 +56,18 @@ auditoria de segurança nem substituto de um diagnóstico profissional.
 
 | Item | Situação |
 |---|---|
-| Estágio | **FIX MY PC 2.0 — aprovado para uso pessoal supervisionado, com ressalvas** (versão da ferramenta 0.1.0). Fases A, B e C concluídas |
+| Código-fonte | Publicado neste repositório sob a Licença MIT |
+| Desenvolvimento | **FIX MY PC 2.0 concluído** (Fases A, B e C), aprovado para **uso pessoal supervisionado, com ressalvas** (versão da ferramenta 0.1.0) |
 | Modo Simples | Validado em uma execução supervisionada no Windows 11 Enterprise com Windows PowerShell 5.1 |
 | Modo Completo (2.0) | Auditorias reais `standard` e `deep` concluídas em VM Windows 11 supervisionada com permissões de usuário comum. Veredito **aprovado com ressalvas**. A validação em hardware físico está pendente |
 | Windows 10, PowerShell 7 | Não validados e não suportados |
-| Distribuição pública | **Ainda não publicada.** A revisão de artes e nome (`LEGAL-REVIEW`) foi encerrada pelo proprietário; não foi uma revisão jurídica profissional. Também estão pendentes a validação do Modo Completo em hardware físico e os checksums de um futuro pacote público |
+| Pacote de lançamento (ZIP) | **Não lançado.** Pendentes: validação do Modo Completo em hardware físico e checksums do pacote. A revisão de artes e nome (`LEGAL-REVIEW`) foi encerrada pelo proprietário em 26/11/2026; não foi uma revisão jurídica profissional |
 
-As pendências de lançamento estão em
-[`distribution-manifest.json`](distribution-manifest.json),
-[`docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md`](docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md)
-e [`NOTICE.md`](NOTICE.md).
+As pendências atuais de lançamento estão em
+[`distribution-manifest.json`](distribution-manifest.json) e [`NOTICE.md`](NOTICE.md).
+Os documentos em `docs/reviews/` são registros datados de etapas anteriores, como
+[`PUBLIC-RELEASE-REMEDIATION-PLAN.md`](docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md)
+(21/11/2026). Eles documentam decisões passadas; não são avaliações atuais.
 
 ## Principais recursos
 
@@ -197,9 +201,11 @@ Windows 10 e PowerShell 7 (`pwsh`) não foram validados e não são suportados.
 
 ## Primeiros passos
 
-O pacote de distribuição pública ainda não foi aprovado. Se você recebeu uma
-cópia do proprietário do projeto, extraia-a em uma pasta sob seu controle e
-execute os comandos abaixo a partir dela, no Windows PowerShell 5.1.
+Ainda não existe pacote público de lançamento (ZIP). O código-fonte deste
+repositório pode ser usado a partir de um clone ou download, dentro da situação e
+dos limites descritos em [Status do projeto](#status-do-projeto). Coloque-o em
+uma pasta sob seu controle e execute os comandos abaixo a partir dela, no Windows
+PowerShell 5.1.
 
 Execução interativa (explica a política e pergunta idioma, modo e consentimento):
 

@@ -5,7 +5,7 @@ argument-hint: "[audit]"
 license: MIT
 metadata:
   version: "0.1.0"
-  diagnosis: "2.0 (approved for supervised personal use, with caveats; not approved for public distribution)"
+  diagnosis: "2.0 (development complete; approved for supervised personal use, with caveats; source code public under MIT; no packaged public release yet)"
 ---
 
 # FIX MY PC: PC Diagnostic & Audit Skill

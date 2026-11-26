@@ -2,9 +2,10 @@
 
 **English** · [Português (Brasil)](README.pt-BR.md)
 
-> **Status: FIX MY PC 2.0 — approved for supervised personal use, with caveats.** Not approved for public distribution.
-> Licensed under the [MIT License](LICENSE). Copyright (c) 2026 Lucas Sehenth.
-> No public release has been approved yet.
+> **Status**
+> - **Source code:** available in this repository under the [MIT License](LICENSE). Copyright (c) 2026 Lucas Sehenth.
+> - **FIX MY PC 2.0:** development complete and approved for **supervised personal use, with caveats**.
+> - **Packaged release (ZIP):** not released yet. Full-mode validation on physical hardware and release checksums are pending.
 
 FIX MY PC is a read-only diagnostic tool for Windows. It runs real local checks,
 applies a deterministic rule set and produces an offline HTML report and a
@@ -12,7 +13,8 @@ sanitized JSON file. It never repairs, cleans or changes the computer.
 
 FIX MY PC 2.0 adds advanced Windows diagnostics in **Full mode**. Its
 `standard` and `deep` audits were approved with caveats in a supervised
-Windows 11 VM. The personal package is ready for supervised use.
+Windows 11 VM. That approval covers supervised personal use only; no packaged
+public release exists yet.
 
 ## Contents
 
@@ -53,16 +55,18 @@ audit or a substitute for professional diagnosis.
 
 | Item | State |
 |---|---|
-| Release stage | **FIX MY PC 2.0 — approved for supervised personal use, with caveats** (tool version 0.1.0). Phases A, B and C completed |
+| Source code | Published in this repository under the MIT License |
+| Development | **FIX MY PC 2.0 complete** (Phases A, B and C), approved for **supervised personal use, with caveats** (tool version 0.1.0) |
 | Simple mode | Validated in one supervised run on Windows 11 Enterprise with Windows PowerShell 5.1 |
 | Full mode (2.0) | Real `standard` and `deep` audits completed in a supervised Windows 11 VM with standard user permissions. Verdict **approved with caveats**. Physical-hardware validation is pending |
 | Windows 10, PowerShell 7 | Not validated and not supported |
-| Public distribution | **Not released yet.** The artwork and naming review (`LEGAL-REVIEW`) was closed by the owner; it was not a professional legal review. Physical-hardware validation for Full mode and checksums for a future public package are also pending |
+| Packaged release (ZIP) | **Not released.** Pending: Full-mode validation on physical hardware and checksums for the release package. The artwork and naming review (`LEGAL-REVIEW`) was closed by the owner on 2026-11-26; it was not a professional legal review |
 
-Open release items are tracked in
-[`distribution-manifest.json`](distribution-manifest.json),
-[`docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md`](docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md)
-and [`NOTICE.md`](NOTICE.md).
+Current release items are in [`distribution-manifest.json`](distribution-manifest.json)
+and [`NOTICE.md`](NOTICE.md). The documents in `docs/reviews/` are dated
+records of earlier stages, such as
+[`PUBLIC-RELEASE-REMEDIATION-PLAN.md`](docs/reviews/PUBLIC-RELEASE-REMEDIATION-PLAN.md)
+(2026-11-21). They document past decisions; they are not current assessments.
 
 ## Key features
 
@@ -189,9 +193,10 @@ Windows 10 and PowerShell 7 (`pwsh`) are not validated and not supported.
 
 ## Getting started
 
-There is no approved public distribution package. If you received a copy from
-the project owner, extract it to a folder you control and run these commands
-from that folder in Windows PowerShell 5.1.
+No packaged public release (ZIP) exists yet. The source code in this
+repository can be used from a clone or download, within the status and limits
+described in [Project status](#project-status). Put it in a folder you control
+and run these commands from that folder in Windows PowerShell 5.1.
 
 Interactive run (explains the policy, then asks language, mode and consent):
 
